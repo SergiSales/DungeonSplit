@@ -1,4 +1,3 @@
-using System.Security.AccessControl;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -29,7 +28,7 @@ public class BSPGenerator
     {
         // Dividir recursivamente el nodo
         Debug.Log(node);
-        if(node.Area.width < minSize * 2 && node.Area.height < minSize * 2){
+        if(node.Area.width <= minSize * 2 && node.Area.height <= minSize * 2){
             Debug.Log(node + " No se puede dividir más.");
             return; // Si el área es demasiado pequeña, no dividir más
         }
@@ -63,7 +62,6 @@ public class BSPGenerator
     }
 
     // Convertir hojas en habitaciones
-
     public List<Room> CreateRooms(BSPNode node)
     {
         List<Room> rooms = new List<Room>();
@@ -76,20 +74,86 @@ public class BSPGenerator
         // Crear una sala por hoja, recorrer el arbol recursivamente
         if (node.IsLeaf)
         {
-             // Espacio para pasillos
-            IntRect roomBounds = new IntRect(
-                node.Area.x + padding,
-                node.Area.y + padding,
-                node.Area.width - padding * 2,
-                node.Area.height - padding * 2
-            );
-            rooms.Add(new Room(roomBounds));
+            // Espacio para pasillos
+            int innerWidth = node.Area.width - padding * 2;
+            int innerHeight = node.Area.height - padding * 2;
+
+            int roomX = node.Area.x + padding;
+            int roomY = node.Area.y + padding;
+            int roomWidth = innerWidth;
+            int roomHeight = innerHeight;
+
+            if (innerWidth >= minSize && innerHeight >= minSize)
+            {
+                roomWidth = rd.Next(minSize, innerWidth + 1);
+                roomHeight = rd.Next(minSize, innerHeight + 1);
+
+                int maxX = node.Area.x + padding + (innerWidth - roomWidth);
+                int maxY = node.Area.y + padding + (innerHeight - roomHeight);
+
+                roomX = rd.Next(node.Area.x + padding, maxX + 1);
+                roomY = rd.Next(node.Area.y + padding, maxY + 1);
+            }
+
+            IntRect roomBounds = new IntRect(roomX, roomY, roomWidth, roomHeight);
+            Room room = new Room(roomBounds);
+            node.Room = room;
+            rooms.Add(room);
         }
         else
         {
             CollectLeafRooms(node.left, rooms);
             CollectLeafRooms(node.right, rooms);
         }
+    }
+
+// Crear lista con pasillos entre habitaciones
+    public List<Corridor> CreateCorridors(BSPNode node)
+    {
+        List<Corridor> corridors = new List<Corridor>();
+        ConnectRooms(node, corridors);
+        return corridors;
+    }
+
+// Conectar habitaciones recursivamente, creando pasillos entre ellas
+    private Room ConnectRooms(BSPNode node, List<Corridor> corridors)
+    {
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.IsLeaf)
+        {
+            return node.Room;
+        }
+
+        Room leftRoom = ConnectRooms(node.left, corridors);
+        Room rightRoom = ConnectRooms(node.right, corridors);
+
+        if (leftRoom != null && rightRoom != null)
+        {
+            corridors.Add(CreateCorridor(leftRoom.center, rightRoom.center));
+        }
+
+        node.Room = rd.NextDouble() < 0.5 ? leftRoom : rightRoom;
+        return node.Room;
+    }
+
+// Crear el pasillo indicado
+    private Corridor CreateCorridor(Vector2Int start, Vector2Int end)
+    {
+        if (start.x == end.x || start.y == end.y)
+        {
+            return new Corridor(start, end);
+        }
+
+        bool horizontalFirst = rd.NextDouble() < 0.5;
+        Vector2Int bend = horizontalFirst
+            ? new Vector2Int(end.x, start.y)
+            : new Vector2Int(start.x, end.y);
+
+        return new Corridor(start, end, bend);
     }
 
 }

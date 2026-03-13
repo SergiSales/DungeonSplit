@@ -4,6 +4,7 @@ public class BSPNode
     public IntRect Area;
     public BSPNode left;
     public BSPNode right;
+    public Room Room;
 
     
     public bool IsLeaf => left == null && right == null;
