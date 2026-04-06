@@ -26,7 +26,6 @@ public class Test3 : MonoBehaviour
         Debug.Log("Generating root node");
         root = generator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
         rooms = generator.CreateRooms(root);
-        corridors = generator.CreateCorridors(root);
     }
     void OnDrawGizmos()
     {
@@ -36,7 +35,6 @@ public class Test3 : MonoBehaviour
         }
         DrawNodeGizmos(root);
         DrawRoomsGizmos(root);
-        DrawCorridorsGizmos();
     }
 
     void DrawNodeGizmos(BSPNode node)
@@ -67,29 +65,4 @@ public class Test3 : MonoBehaviour
         }
     }
 
-    void DrawCorridorsGizmos()
-    {
-        if (corridors == null)
-        {
-            return;
-        }
-
-        Gizmos.color = Color.yellow;
-        foreach (var corridor in corridors)
-        {
-            Vector3 start = new Vector3(corridor.start.x, 0, corridor.start.y);
-            Vector3 end = new Vector3(corridor.end.x, 0, corridor.end.y);
-
-            if (corridor.hasBend)
-            {
-                Vector3 bend = new Vector3(corridor.bend.x, 0, corridor.bend.y);
-                Gizmos.DrawLine(start, bend);
-                Gizmos.DrawLine(bend, end);
-            }
-            else
-            {
-                Gizmos.DrawLine(start, end);
-            }
-        }
-    }
 }

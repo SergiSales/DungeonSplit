@@ -27,9 +27,7 @@ public class BSPGenerator
     private void SplitNode(BSPNode node)
     {
         // Dividir recursivamente el nodo
-        Debug.Log(node);
         if(node.Area.width <= minSize * 2 && node.Area.height <= minSize * 2){
-            Debug.Log(node + " No se puede dividir más.");
             return; // Si el área es demasiado pequeña, no dividir más
         }
         bool splitHorizontal = rd.NextDouble() > 0.5; //Decidir si se divide horizontal o vertical
@@ -107,13 +105,7 @@ public class BSPGenerator
         }
     }
 
-// Crear lista con pasillos entre habitaciones
-    public List<Corridor> CreateCorridors(BSPNode node)
-    {
-        List<Corridor> corridors = new List<Corridor>();
-        ConnectRooms(node, corridors);
-        return corridors;
-    }
+
 
 // Conectar habitaciones recursivamente, creando pasillos entre ellas
     private Room ConnectRooms(BSPNode node, List<Corridor> corridors)
