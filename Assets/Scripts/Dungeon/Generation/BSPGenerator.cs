@@ -8,7 +8,7 @@ public class BSPGenerator
     private int minSize; // Tamaño mínimo para dividir
     private System.Random rd;
 
-    public int padding = 2; // Espacio para pasillos entre habitaciones
+    public int padding = 4; // Espacio para pasillos entre habitaciones
 
     public BSPGenerator(int minSize, int seed)
     {
