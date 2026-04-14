@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 using UnityEngine;
 
 public class Test9 : MonoBehaviour
@@ -57,7 +58,7 @@ public class Test9 : MonoBehaviour
     public bool showCorridors = true;
     public bool showCorridorCells = true;
 
-    [Header("Debug Stats")]
+    [Header("UnityEngine.Debug Stats")]
     public int generatedRoomCount;
     public int generatedCorridorCount;
     public int carvedCorridorTiles;
@@ -76,43 +77,53 @@ public class Test9 : MonoBehaviour
 
     void Start()
     {
+        Stopwatch totalTimer = Stopwatch.StartNew();
         seed = UnityEngine.Random.Range(0, 100000);
 
+        // Fase 1: Generación del mapa de densidad
         if (usePerlinNoise)
         {
             densityMap = new float[dungeonWidth, dungeonHeight];
             GeneratePerlinNoiseDensityMap();
         }
-
+        
+        // Fase 2: Generación BSP
         BSPGenerator generator = new BSPGenerator(minRoomSize, seed);
         root = generator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
         rooms = generator.CreateRooms(root);
-
+        
+        // Fase 3: Filtrado por densidad
         if (usePerlinNoise && densityMap != null)
         {
             rooms = FilterRoomsByDensity(rooms);
-            Debug.Log("Rooms filtered by density. Remaining rooms: " + rooms.Count);
         }
-
+        
+        
+        // Fase 4: Construcción de lookups y navegación
         generatedRoomCount = rooms.Count;
         BuildRoomLookups();
         BuildNavigationGrid();
-
+        
         if (rooms.Count > 1)
         {
+            // Fase 5: Triangulación Delaunay
+            
             GenerateDelaunayTriangulation();
-            Debug.Log("Delaunay Triangulation Generated. Triangles: " + delaunayTriangles.Count + " | Edges: " + delaunayEdges.Count);
-
+            
+            // Fase 6: Árbol de expansión mínima
             GenerateMinimumSpanningTree();
             ControlDeadEnds();
             
-
+            // Fase 7: Generación de corredores
             if (generateCorridors && mstEdges.Count > 0)
             {
                 GenerateCorridorsFromGraph();
-                Debug.Log("Corridors carved. Paths: " + generatedCorridorCount + " | Tiles: " + carvedCorridorTiles);
             }
         }
+
+        totalTimer.Stop();
+        UnityEngine.Debug.Log($"[Test9] Generated rooms: {rooms.Count}");
+        UnityEngine.Debug.Log($"[Test9] Total generation time: {totalTimer.ElapsedMilliseconds}ms");
     }
 
     void OnDrawGizmos()
@@ -285,8 +296,6 @@ public class Test9 : MonoBehaviour
 
         int targetExtraEdges = Mathf.RoundToInt(delaunayEdges.Count * extraConnectionFactor);
         int addedCycles = AddCyclesToMST(targetExtraEdges);
-
-        Debug.Log("Extra connections added: " + addedCycles);
     }
 
     void ControlDeadEnds()
@@ -400,7 +409,6 @@ public class Test9 : MonoBehaviour
 
             if (corridorPath == null || corridorPath.Count == 0)
             {
-                Debug.LogWarning("No corridor path found between " + edge.p1 + " and " + edge.p2);
                 continue;
             }
 

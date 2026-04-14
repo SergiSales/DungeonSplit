@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,7 @@ public class Test6 : MonoBehaviour
     public bool showBSPNodes = true;
     public bool showDensityMap = false;
 
-    [Header("Debug Stats")]
+    [Header("UnityEngine.Debug Stats")]
     public int generatedRoomCount = 0;
 
     private BSPNode root;
@@ -36,30 +37,29 @@ public class Test6 : MonoBehaviour
 
     void Start()
     {
+        Stopwatch totalTimer = Stopwatch.StartNew();
+
         //Generar Mazmorra al iniciar escena
         seed = UnityEngine.Random.Range(0, 100000);
-        Debug.Log("Starting generator");
-        
+
         // Generar mapa de densidad Perlin Noise
         if (usePerlinNoise)
         {
             densityMap = new float[dungeonWidth, dungeonHeight];
             GeneratePerlinNoiseDensityMap();
-            Debug.Log("Perlin Noise Density Map Generated");
         }
-
+        
         BSPGenerator generator = new BSPGenerator(minRoomSize, seed);
-        Debug.Log("Generator Finished");
-        Debug.Log("Generating root node");
         root = generator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
         rooms = generator.CreateRooms(root);
-
+       
         // Filtrar habitaciones según el mapa de densidad
         if (usePerlinNoise && densityMap != null)
         {
             rooms = FilterRoomsByDensity(rooms);
-            Debug.Log("Rooms filtered by density. Remaining rooms: " + rooms.Count);
         }
+        
+        
 
         // Guardar número de habitaciones generadas
         generatedRoomCount = rooms.Count;
@@ -73,12 +73,14 @@ public class Test6 : MonoBehaviour
 
             // Generar Delaunay Triangulation
             GenerateDelaunayTriangulation();
-            Debug.Log("Delaunay Triangulation Generated. Triangles: " + delaunayTriangles.Count);
-
+          
             // Aplicar Prim sobre las aristas de Delaunay
             GenerateMinimumSpanningTree();
-            Debug.Log("MST Generated. Edges: " + mstEdges.Count);
         }
+
+        totalTimer.Stop();
+        UnityEngine.Debug.Log($"[Test6] Generated rooms: {rooms.Count}");
+        UnityEngine.Debug.Log($"[Test6] Total generation time: {totalTimer.ElapsedMilliseconds}ms");
     }
     void OnDrawGizmos()
     {

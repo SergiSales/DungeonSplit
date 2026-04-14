@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,22 +33,28 @@ public class Test4 : MonoBehaviour
 
     void Start()
     {
+        Stopwatch totalTimer = Stopwatch.StartNew();
+
         //Generar Mazmorra al iniciar escena
         seed = UnityEngine.Random.Range(0, 100000);
-        Debug.Log("Starting generator");
+
+        Stopwatch bspTimer = Stopwatch.StartNew();
         BSPGenerator generator = new BSPGenerator(minRoomSize, seed);
-        Debug.Log("Generator Finished");
-        Debug.Log("Generating root node");
         root = generator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
         rooms = generator.CreateRooms(root);
+        bspTimer.Stop();
+
 
         // Generar Delaunay Triangulation si está habilitado
         if (useDelaunay && rooms.Count > 2)
         {
             delaunayTriangles = new List<DelaunayTriangle>();
             GenerateDelaunayTriangulation();
-            Debug.Log("Delaunay Triangulation Generated. Triangles: " + delaunayTriangles.Count);
         }
+
+        totalTimer.Stop();
+        UnityEngine.Debug.Log($"[Test4] Generated rooms: {rooms.Count}");
+        UnityEngine.Debug.Log($"[Test4] Total generation time: {totalTimer.ElapsedMilliseconds}ms");
     }
     void OnDrawGizmos()
     {

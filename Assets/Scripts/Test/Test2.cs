@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Test2 : MonoBehaviour
 {
@@ -15,13 +17,20 @@ public class Test2 : MonoBehaviour
 
     void Start()
     {
+        Stopwatch totalTimer = Stopwatch.StartNew();
+
         //Generar Mazmorra al iniciar escena
         seed = UnityEngine.Random.Range(0, 100000);
-        Debug.Log("Starting generator");
+
         BSPGenerator generator = new BSPGenerator(minRoomSize, seed);
-        Debug.Log("Generator Finished");
-        Debug.Log("Generating root node");
         root = generator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
+        List<Room> rooms = generator.CreateRooms(root);
+        
+        
+
+        totalTimer.Stop();
+        UnityEngine.Debug.Log($"[Test2] Generated rooms: {rooms.Count}");
+        UnityEngine.Debug.Log($"[Test2] Total generation time: {totalTimer.ElapsedMilliseconds}ms");
     }
     void OnDrawGizmos()
     {

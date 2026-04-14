@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +32,7 @@ public class Test7 : MonoBehaviour
     [Header("MST Settings")]
     [Range(0, 20)] public int extraCycleEdges = 2;
 
-    [Header("Debug Stats")]
+    [Header("UnityEngine.Debug Stats")]
     public int generatedRoomCount = 0;
 
     private BSPNode root;
@@ -44,26 +45,29 @@ public class Test7 : MonoBehaviour
 
     void Start()
     {
+        Stopwatch totalTimer = Stopwatch.StartNew();
+
         //Generar Mazmorra al iniciar escena
         seed = UnityEngine.Random.Range(0, 100000);
-        
+
         // Generar mapa de densidad Perlin Noise
         if (usePerlinNoise)
         {
             densityMap = new float[dungeonWidth, dungeonHeight];
             GeneratePerlinNoiseDensityMap();
         }
-
+        
         BSPGenerator generator = new BSPGenerator(minRoomSize, seed);
         root = generator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
         rooms = generator.CreateRooms(root);
-
+        
         // Filtrar habitaciones según el mapa de densidad
         if (usePerlinNoise && densityMap != null)
         {
             rooms = FilterRoomsByDensity(rooms);
-            Debug.Log("Rooms filtered by density. Remaining rooms: " + rooms.Count);
         }
+        
+        
 
         // Guardar número de habitaciones generadas
         generatedRoomCount = rooms.Count;
@@ -77,12 +81,14 @@ public class Test7 : MonoBehaviour
 
             // Generar Delaunay Triangulation
             GenerateDelaunayTriangulation();
-            Debug.Log("Delaunay Triangulation Generated. Triangles: " + delaunayTriangles.Count);
-
+        
             // Aplicar Prim sobre las aristas de Delaunay
             GenerateMinimumSpanningTree();
-            Debug.Log("MST Generated. Edges: " + mstEdges.Count);
         }
+
+        totalTimer.Stop();
+        UnityEngine.Debug.Log($"[Test7] Generated rooms: {rooms.Count}");
+        UnityEngine.Debug.Log($"[Test7] Total generation time: {totalTimer.ElapsedMilliseconds}ms");
     }
     void OnDrawGizmos()
     {
@@ -208,7 +214,6 @@ public class Test7 : MonoBehaviour
         if (extraCycleEdges > 0)
         {
             AddCyclesToMST(extraCycleEdges);
-            Debug.Log("Added " + Math.Min(extraCycleEdges, Math.Max(0, mstEdges.Count - (rooms.Count - 1))) + " cycle edges to MST.");
         }
     }
 
@@ -438,7 +443,6 @@ public class Test7 : MonoBehaviour
             existingEdges.Add(NormalizeEdgeTuple(best.p1, best.p2));
             AddEdgeToGraph(currentGraph, best);
             added++;
-            Debug.Log($"Loop añadido entre {best.p1} y {best.p2} | Score: {EvaluateLoopEdge(best, currentGraph)}");
         }
     }
 

@@ -462,7 +462,7 @@ GameObject:
   - component: {fileID: 1631812404}
   - component: {fileID: 1631812403}
   m_Layer: 0
-  m_Name: test(BSP + Delaunay)
+  m_Name: test(Minimum Spanning Tree)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
