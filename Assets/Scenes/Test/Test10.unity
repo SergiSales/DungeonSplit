@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 102947179}
   - component: {fileID: 102947180}
   m_Layer: 0
-  m_Name: test(control dead-ends)
+  m_Name: test(assets floor)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -190,7 +190,7 @@ MonoBehaviour:
   showCorridorCells: 1
   spawnGeneratedRooms: 1
   roomPrefabs:
-  - {fileID: 100000, guid: b2f96746c6005c64888263f64272a556, type: 3}
+  - {fileID: 1200385319880676783, guid: bc41f13fa4f656b4ebe3733d9cfbd040, type: 3}
   cellSize: 1
   roomHeight: 0
   roomsParent: {fileID: 0}
