@@ -80,35 +80,36 @@ public class Test11 : MonoBehaviour
 
     void Start()
     {
+        
         Stopwatch totalTimer = Stopwatch.StartNew();
         seed = Random.Range(0, 100000);
         InitializeGenerators();
 
-        // Fase 1: Generación del mapa de densidad
+        // Generación del mapa de densidad
         if (usePerlinNoise)
         {
             densityMap = densityGenerator.GeneratePerlinNoise(perlinScale);
         }
         
-        // Fase 2: Generación BSP
+        // Generación BSP
         BSPGenerator bspGenerator = new BSPGenerator(minRoomSize, seed);
         root = bspGenerator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
         rooms = bspGenerator.CreateRooms(root);
         
-        // Fase 3: Filtrado por densidad
+        // Filtrado por densidad
         if (usePerlinNoise && densityMap != null)
         {
             densityGenerator.FilterRoomsByDensity(ref rooms, densityMap, densityThreshold);
         }
         
-        // Fase 4: Construcción de lookups y navegación
+        // Construcción de lookups y navegación
         generatedRoomCount = rooms.Count;
         gridUtilities.BuildRoomLookups(rooms, out roomByCenter, out roomIndexByCenter);
         gridUtilities.BuildNavigationGrid(rooms, dungeonWidth, dungeonHeight, out occupancyGrid, out roomIndexGrid);
         
         if (rooms.Count > 1)
         {
-            // Fase 5: Triangulación Delaunay
+            // Triangulación Delaunay
             List<Vector2Int> points = new List<Vector2Int>();
             foreach (Room room in rooms)
                 points.Add(room.center);
@@ -126,17 +127,15 @@ public class Test11 : MonoBehaviour
                     }
                 }
             }
-
             delaunayEdges.Sort((a, b) => a.distance.CompareTo(b.distance));
-            
-            // Fase 6: Árbol de expansión mínima
+            // Árbol de expansión mínima
             mstEdges = mstGenerator.GenerateMST(delaunayEdges, rooms);
             mstGenerator.ControlDeadEnds(mstEdges, delaunayEdges, deadEndKeepChance, deadEndConnectChance);
             int targetExtraEdges = Mathf.RoundToInt(delaunayEdges.Count * extraConnectionFactor);
-            mstGenerator.AddCyclesToMST(mstEdges, delaunayEdges, loopQualityBias, randomnessFactor,
+            mstGenerator.AddCyclesToMST(mstEdges, delaunayEdges, loopQualityBias, randomnessFactor, 
                 minGraphDistanceThreshold, targetExtraEdges);
             
-            // Fase 7: Generación de corredores
+            // Generación de corredores
             if (generateCorridors && mstEdges.Count > 0)
             {
                 corridorGenerator.GenerateCorridors(mstEdges, roomByCenter, roomIndexByCenter, 
