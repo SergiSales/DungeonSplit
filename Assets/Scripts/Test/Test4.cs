@@ -10,6 +10,8 @@ public class Test4 : MonoBehaviour
     public int dungeonWidth = 100;
     public int dungeonHeight = 100;
     public int minRoomSize = 10;
+    public int maxRoomSize = 20;
+
     public int seed;
 
     [Header("Delaunay Settings")]
@@ -39,7 +41,7 @@ public class Test4 : MonoBehaviour
         seed = UnityEngine.Random.Range(0, 100000);
 
         Stopwatch bspTimer = Stopwatch.StartNew();
-        BSPGenerator generator = new BSPGenerator(minRoomSize, seed);
+        BSPGenerator generator = new BSPGenerator(minRoomSize, maxRoomSize, seed);
         root = generator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
         rooms = generator.CreateRooms(root);
         bspTimer.Stop();

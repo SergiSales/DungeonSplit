@@ -22,6 +22,7 @@ public class Test9 : MonoBehaviour
     public int dungeonWidth = 100;
     public int dungeonHeight = 100;
     public int minRoomSize = 14;
+    public int maxRoomSize = 20;
     public int seed;
 
     [Header("Perlin Noise Settings")]
@@ -88,7 +89,7 @@ public class Test9 : MonoBehaviour
         }
         
         // Fase 2: Generación BSP
-        BSPGenerator generator = new BSPGenerator(minRoomSize, seed);
+        BSPGenerator generator = new BSPGenerator(minRoomSize, maxRoomSize, seed);
         root = generator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
         rooms = generator.CreateRooms(root);
         

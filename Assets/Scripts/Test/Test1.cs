@@ -14,6 +14,7 @@ public class Test1 : MonoBehaviour
     public int dungeonWidth = 100;
     public int dungeonHeight = 100;
     public int minRoomSize = 10;
+    public int maxRoomSize = 20;
     public int seed;
     void Start()
     {
@@ -22,7 +23,7 @@ public class Test1 : MonoBehaviour
         // Se instancia el generador BSP con un tamaño mínimo y una semilla
         seed = UnityEngine.Random.Range(0, 100000);
 
-        BSPGenerator generator = new BSPGenerator(minRoomSize, seed);
+        BSPGenerator generator = new BSPGenerator(minRoomSize, maxRoomSize, seed);
 
         // Área total de la mazmorra (100x100 unidades)
         BSPNode root = generator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));

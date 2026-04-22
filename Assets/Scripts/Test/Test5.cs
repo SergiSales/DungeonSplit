@@ -10,6 +10,7 @@ public class Test5 : MonoBehaviour
     public int dungeonWidth = 100;
     public int dungeonHeight = 100;
     public int minRoomSize = 10;
+    public int maxRoomSize = 20;
     public int seed;
 
     [Header("MST Settings")]
@@ -54,7 +55,7 @@ public class Test5 : MonoBehaviour
         //Generar Mazmorra al iniciar escena
         seed = UnityEngine.Random.Range(0, 100000);
 
-        BSPGenerator generator = new BSPGenerator(minRoomSize, seed);
+        BSPGenerator generator = new BSPGenerator(minRoomSize, maxRoomSize, seed);
         root = generator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
         rooms = generator.CreateRooms(root);
 

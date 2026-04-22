@@ -3,6 +3,27 @@ using UnityEngine;
 
 public class PathfindingAStar
 {
+    public struct SearchBounds
+    {
+        public int MinX;
+        public int MinY;
+        public int MaxX;
+        public int MaxY;
+
+        public SearchBounds(int minX, int minY, int maxX, int maxY)
+        {
+            MinX = minX;
+            MinY = minY;
+            MaxX = maxX;
+            MaxY = maxY;
+        }
+
+        public bool Contains(Vector2Int cell)
+        {
+            return cell.x >= MinX && cell.x <= MaxX && cell.y >= MinY && cell.y <= MaxY;
+        }
+    }
+
     private static readonly Vector2Int[] CardinalDirections =
     {
         Vector2Int.up,
@@ -15,11 +36,19 @@ public class PathfindingAStar
     private const int CellRoom = 1;
     private const int CellCorridor = 2;
 
-    public List<Vector2Int> FindPath(Vector2Int start, Vector2Int goal, int startRoomIndex, int endRoomIndex, 
+    public List<Vector2Int> FindPath(Vector2Int start, Vector2Int goal, int startRoomIndex, int endRoomIndex,
+        Vector2Int startRoomAccessCell, Vector2Int endRoomAccessCell,
         int[,] occupancyGrid, int[,] roomIndexGrid, int dungeonWidth, int dungeonHeight, 
-        float roomCrossPenalty, float turnPenalty, float existingCorridorCost, bool allowRoomPenalty)
+        float roomCrossPenalty, float turnPenalty, float existingCorridorCost, bool allowRoomPenalty,
+        float[,] traversalNoise = null, SearchBounds? searchBounds = null)
     {
         if (!IsInsideGrid(start, dungeonWidth, dungeonHeight) || !IsInsideGrid(goal, dungeonWidth, dungeonHeight))
+        {
+            return null;
+        }
+
+        if (searchBounds.HasValue &&
+            (!searchBounds.Value.Contains(start) || !searchBounds.Value.Contains(goal)))
         {
             return null;
         }
@@ -45,18 +74,22 @@ public class PathfindingAStar
             {
                 Vector2Int neighbor = current + direction;
 
-                if (closedSet.Contains(neighbor) || !IsInsideGrid(neighbor, dungeonWidth, dungeonHeight))
+                if (closedSet.Contains(neighbor) ||
+                    !IsInsideGrid(neighbor, dungeonWidth, dungeonHeight) ||
+                    (searchBounds.HasValue && !searchBounds.Value.Contains(neighbor)))
                 {
                     continue;
                 }
 
-                if (!TryGetTraversalCost(neighbor, startRoomIndex, endRoomIndex, allowRoomPenalty, 
+                if (!TryGetTraversalCost(neighbor, startRoomIndex, endRoomIndex, startRoomAccessCell, endRoomAccessCell, allowRoomPenalty,
                     occupancyGrid, roomIndexGrid, roomCrossPenalty, existingCorridorCost, out float traversalCost))
                 {
                     continue;
                 }
                 
-                float noise = Mathf.PerlinNoise(neighbor.x * 0.08f, neighbor.y * 0.08f);
+                float noise = traversalNoise != null
+                    ? traversalNoise[neighbor.x, neighbor.y]
+                    : Mathf.PerlinNoise(neighbor.x * 0.08f, neighbor.y * 0.08f);
 
                 float tentativeScore =
                     gScore[current]
@@ -83,7 +116,8 @@ public class PathfindingAStar
         return null;
     }
 
-    private bool TryGetTraversalCost(Vector2Int cell, int startRoomIndex, int endRoomIndex, bool allowRoomPenalty,
+    private bool TryGetTraversalCost(Vector2Int cell, int startRoomIndex, int endRoomIndex, Vector2Int startRoomAccessCell,
+        Vector2Int endRoomAccessCell, bool allowRoomPenalty,
         int[,] occupancyGrid, int[,] roomIndexGrid, float roomCrossPenalty, float existingCorridorCost, out float cost)
     {
         cost = 1f;
@@ -91,19 +125,34 @@ public class PathfindingAStar
         int roomIndex = roomIndexGrid[cell.x, cell.y];
         if (roomIndex >= 0)
         {
-            bool isTerminalRoom = roomIndex == startRoomIndex || roomIndex == endRoomIndex;
-            if (!isTerminalRoom)
+            if (roomIndex == startRoomIndex)
             {
-                if (!allowRoomPenalty)
+                if (cell != startRoomAccessCell)
                 {
                     return false;
                 }
 
-                cost = roomCrossPenalty;
+                cost = 1f;
                 return true;
             }
 
-            cost = 1f;
+            if (roomIndex == endRoomIndex)
+            {
+                if (cell != endRoomAccessCell)
+                {
+                    return false;
+                }
+
+                cost = 1f;
+                return true;
+            }
+
+            if (!allowRoomPenalty)
+            {
+                return false;
+            }
+
+            cost = roomCrossPenalty;
             return true;
         }
 

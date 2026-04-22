@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class Test11 : MonoBehaviour
 {
+    #region Inspector Variables
     [Header("Dungeon Settings")]
     public int dungeonWidth = 100;
     public int dungeonHeight = 100;
     public int minRoomSize = 14;
+    public int maxRoomSize = 20;
     public int seed;
 
     [Header("Perlin Noise Settings")]
@@ -19,10 +21,10 @@ public class Test11 : MonoBehaviour
     [Range(0f, 1f)] public float loopQualityBias = 0.7f;
     [Range(0f, 1f)] public float randomnessFactor = 0.2f;
     [Range(1f, 10f)] public float minGraphDistanceThreshold = 2f;
-    
+
     [Header("Connectivity")]
     [Range(0f, 1f)] public float extraConnectionFactor = 0.35f;
-    
+
     [Header("Dead Ends Control")]
     [Range(0f, 1f)] public float deadEndKeepChance = 0.85f;
     [Range(0f, 1f)] public float deadEndConnectChance = 0.15f;
@@ -37,26 +39,40 @@ public class Test11 : MonoBehaviour
     [Range(0, 20)] public int extraCycleEdges = 2;
 
     [Header("Gizmo/Map Settings")]
-    public bool showDelaunay = false;
-    public bool showMST = true;
-    public bool showRooms = true;
-    public bool showBSPNodes = false;
+
+    public bool showBSPNodes = true;
     public bool showDensityMap = false;
+    public bool showRooms = true;
+    public bool showDelaunay = true;
+    public bool showMST = true;
     public bool showCorridors = true;
     public bool showCorridorCells = true;
 
     [Header("Room Spawning")]
     public bool spawnGeneratedRooms = true;
     public GameObject[] roomPrefabs;
-    public float cellSize = 1f;
+    public float cellSize = 10f;
     public float roomHeight = 0f;
     public Transform roomsParent;
+
+    [Header("Corridor Spawning")]
+    public bool spawnGeneratedCorridors = true;
+    public GameObject[] corridorPrefabs;
+    public Transform corridorsParent;
+
+    [Header("Player Spawn")]
+    public bool spawnPlayerOnStart = true;
+    public GameObject playerPrefab;
+    public float playerSpawnHeight = 1f;
 
     [Header("Debug Stats")]
     public int generatedRoomCount;
     public int generatedCorridorCount;
     public int carvedCorridorTiles;
 
+    #endregion
+
+    #region Private Variables
     // Generation data
     private BSPNode root;
     private List<Room> rooms = new List<Room>();
@@ -77,46 +93,47 @@ public class Test11 : MonoBehaviour
     private CorridorGenerator corridorGenerator;
     private GridUtilities gridUtilities;
     private DungeonVisualization visualization;
-
+    #endregion
     void Start()
     {
-        
         Stopwatch totalTimer = Stopwatch.StartNew();
         seed = Random.Range(0, 100000);
         InitializeGenerators();
 
-        // Generación del mapa de densidad
+        // Generacion BSP
+        BSPGenerator bspGenerator = new BSPGenerator(minRoomSize, maxRoomSize, seed);
+        root = bspGenerator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
+        rooms = bspGenerator.CreateRooms(root);
+
+        // Generacion del mapa de densidad
         if (usePerlinNoise)
         {
             densityMap = densityGenerator.GeneratePerlinNoise(perlinScale);
         }
-        
-        // Generación BSP
-        BSPGenerator bspGenerator = new BSPGenerator(minRoomSize, seed);
-        root = bspGenerator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
-        rooms = bspGenerator.CreateRooms(root);
-        
+
         // Filtrado por densidad
         if (usePerlinNoise && densityMap != null)
         {
             densityGenerator.FilterRoomsByDensity(ref rooms, densityMap, densityThreshold);
         }
-        
-        // Construcción de lookups y navegación
+
+        // Construccion de lookups y navegacion
         generatedRoomCount = rooms.Count;
         gridUtilities.BuildRoomLookups(rooms, out roomByCenter, out roomIndexByCenter);
         gridUtilities.BuildNavigationGrid(rooms, dungeonWidth, dungeonHeight, out occupancyGrid, out roomIndexGrid);
-        
+
         if (rooms.Count > 1)
         {
-            // Triangulación Delaunay
+            // Triangulacion Delaunay
             List<Vector2Int> points = new List<Vector2Int>();
             foreach (Room room in rooms)
+            {
                 points.Add(room.center);
-            
+            }
+
             delaunayTriangles = delaunayGenerator.GenerateTriangulation(points);
             delaunayEdges = delaunayGenerator.ExtractEdgesFromTriangles(delaunayTriangles);
-            
+
             if (delaunayEdges.Count == 0 && points.Count > 1)
             {
                 for (int i = 0; i < points.Count; i++)
@@ -127,21 +144,37 @@ public class Test11 : MonoBehaviour
                     }
                 }
             }
+
             delaunayEdges.Sort((a, b) => a.distance.CompareTo(b.distance));
-            // Árbol de expansión mínima
+
+            // Arbol de expansion minima
             mstEdges = mstGenerator.GenerateMST(delaunayEdges, rooms);
             mstGenerator.ControlDeadEnds(mstEdges, delaunayEdges, deadEndKeepChance, deadEndConnectChance);
             int targetExtraEdges = Mathf.RoundToInt(delaunayEdges.Count * extraConnectionFactor);
-            mstGenerator.AddCyclesToMST(mstEdges, delaunayEdges, loopQualityBias, randomnessFactor, 
-                minGraphDistanceThreshold, targetExtraEdges);
-            
-            // Generación de corredores
+            mstGenerator.AddCyclesToMST(
+                mstEdges,
+                delaunayEdges,
+                loopQualityBias,
+                randomnessFactor,
+                minGraphDistanceThreshold,
+                targetExtraEdges);
+
+            // Generacion de corredores
             if (generateCorridors && mstEdges.Count > 0)
             {
-                corridorGenerator.GenerateCorridors(mstEdges, roomByCenter, roomIndexByCenter, 
-                    occupancyGrid, roomIndexGrid, dungeonWidth, dungeonHeight, 
-                    roomCrossPenalty, turnPenalty, existingCorridorCost, 
-                    out corridorPaths, out carvedCorridorTiles);
+                corridorGenerator.GenerateCorridors(
+                    mstEdges,
+                    roomByCenter,
+                    roomIndexByCenter,
+                    occupancyGrid,
+                    roomIndexGrid,
+                    dungeonWidth,
+                    dungeonHeight,
+                    roomCrossPenalty,
+                    turnPenalty,
+                    existingCorridorCost,
+                    out corridorPaths,
+                    out carvedCorridorTiles);
                 generatedCorridorCount = corridorPaths.Count;
             }
         }
@@ -150,6 +183,18 @@ public class Test11 : MonoBehaviour
         {
             SpawnRooms();
         }
+
+        if (spawnGeneratedCorridors)
+        {
+            SpawnCorridors();
+        }
+
+        if (spawnPlayerOnStart)
+        {
+            SpawnPlayerInRandomRoom();
+        }
+
+        
 
         totalTimer.Stop();
         UnityEngine.Debug.Log($"[Test11] Generated rooms: {rooms.Count}");
@@ -213,38 +258,179 @@ public class Test11 : MonoBehaviour
         }
 
         Transform parent = roomsParent != null ? roomsParent : transform;
+        int roomIndex = 1;
 
         foreach (Room room in rooms)
         {
-            SpawnRoom(room, parent);
+            SpawnRoom(room, parent, roomIndex);
+            roomIndex++;
         }
     }
 
-    void SpawnRoom(Room room, Transform parent)
+    void SpawnRoom(Room room, Transform parent, int roomIndex)
     {
         Vector3 worldPos = GridToWorld(room.center);
         GameObject prefab = roomPrefabs[Random.Range(0, roomPrefabs.Length)];
         GameObject instance = Instantiate(prefab, worldPos, Quaternion.identity, parent);
+        instance.name = $"suelo{roomIndex}";
         ScaleRoom(instance.transform, room);
     }
 
     Vector3 GridToWorld(Vector2Int gridPos)
     {
+        return GridToWorld((Vector2)gridPos, roomHeight);
+    }
+
+    Vector3 GridToWorld(Vector2 gridPos, float y)
+    {
         return new Vector3(
-            gridPos.x * cellSize,
-            roomHeight,
-            gridPos.y * cellSize
+            gridPos.x * cellSize * 5f,
+            y,
+            gridPos.y * cellSize * 5f
         );
+    }
+
+    void SpawnPlayerInRandomRoom()
+    {
+        if (rooms == null || rooms.Count == 0)
+        {
+            UnityEngine.Debug.LogWarning("[Test11] Cannot spawn player because no rooms were generated.");
+            return;
+        }
+
+        Room spawnRoom = rooms[Random.Range(0, rooms.Count)];
+        Vector3 spawnPosition = GridToWorld(spawnRoom.center) + Vector3.up * playerSpawnHeight;
+
+        ThirdPersonController player = FindAnyObjectByType<ThirdPersonController>();
+        if (player == null)
+        {
+            if (playerPrefab == null)
+            {
+                UnityEngine.Debug.LogWarning("[Test11] No player found in scene and no player prefab assigned.");
+                return;
+            }
+
+            GameObject playerInstance = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
+            player = playerInstance.GetComponent<ThirdPersonController>();
+        }
+
+        if (player == null)
+        {
+            UnityEngine.Debug.LogWarning("[Test11] The spawned player prefab does not have a ThirdPersonController.");
+            return;
+        }
+
+        player.transform.SetPositionAndRotation(spawnPosition, Quaternion.identity);
+
+        Rigidbody playerRigidbody = player.GetComponent<Rigidbody>();
+        if (playerRigidbody != null)
+        {
+            playerRigidbody.linearVelocity = Vector3.zero;
+            playerRigidbody.angularVelocity = Vector3.zero;
+        }
+
+        DisableOtherCameras(player.transform);
+        UnityEngine.Debug.Log($"[Test11] Player spawned in room centered at {spawnRoom.center}.");
+    }
+
+    void DisableOtherCameras(Transform playerRoot)
+    {
+        Camera[] cameras = FindObjectsByType<Camera>();
+        foreach (Camera camera in cameras)
+        {
+            bool belongsToPlayer = camera.transform.IsChildOf(playerRoot);
+            camera.gameObject.SetActive(belongsToPlayer);
+        }
     }
 
     void ScaleRoom(Transform roomTransform, Room room)
     {
-        Vector3 scale = new Vector3(
-            room.bounds.width * 1.7f / 10f,
-            1f,
-            room.bounds.height * 1.7f / 10f
+        roomTransform.localScale = GetFootprintScale(room.bounds.width, room.bounds.height);
+    }
+
+    void SpawnCorridors()
+    {
+        if (corridorPaths == null || corridorPaths.Count == 0)
+        {
+            return;
+        }
+
+        GameObject[] prefabsToUse = GetCorridorPrefabs();
+        if (prefabsToUse == null || prefabsToUse.Length == 0)
+        {
+            UnityEngine.Debug.LogWarning("[Test11] No corridor prefabs assigned and no room prefabs available as fallback.");
+            return;
+        }
+
+        Transform parent = corridorsParent != null ? corridorsParent : transform;
+        int corridorIndex = 1;
+
+        foreach (List<Vector2Int> path in corridorPaths)
+        {
+            corridorIndex = SpawnCorridorPath(path, prefabsToUse, parent, corridorIndex);
+        }
+    }
+
+    int SpawnCorridorPath(List<Vector2Int> path, GameObject[] prefabsToUse, Transform parent, int corridorIndex)
+    {
+        if (path == null || path.Count == 0)
+        {
+            return corridorIndex;
+        }
+
+        List<Vector2Int> simplifiedPath = corridorGenerator.SimplifyPath(path);
+        if (simplifiedPath.Count == 1)
+        {
+            SpawnCorridorSegment(simplifiedPath[0], simplifiedPath[0], prefabsToUse, parent, corridorIndex);
+            return corridorIndex + 1;
+        }
+
+        for (int i = 0; i < simplifiedPath.Count - 1; i++)
+        {
+            SpawnCorridorSegment(simplifiedPath[i], simplifiedPath[i + 1], prefabsToUse, parent, corridorIndex);
+            corridorIndex++;
+        }
+
+        return corridorIndex;
+    }
+
+    void SpawnCorridorSegment(Vector2Int startCell, Vector2Int endCell, GameObject[] prefabsToUse, Transform parent, int corridorIndex)
+    {
+        int deltaX = Mathf.Abs(endCell.x - startCell.x);
+        int deltaY = Mathf.Abs(endCell.y - startCell.y);
+        int segmentLength = Mathf.Max(deltaX, deltaY) + 1;
+
+        float gridWidth = deltaX > 0 ? segmentLength : 1f;
+        float gridHeight = deltaY > 0 ? segmentLength : 1f;
+        Vector2 midpoint = new Vector2(
+            (startCell.x + endCell.x) * 0.5f,
+            (startCell.y + endCell.y) * 0.5f
         );
 
-        roomTransform.localScale = scale;
+        GameObject prefab = prefabsToUse[Random.Range(0, prefabsToUse.Length)];
+        GameObject instance = Instantiate(prefab, GridToWorld(midpoint, roomHeight), Quaternion.identity, parent);
+        instance.name = $"pasillo{corridorIndex}";
+        instance.transform.localScale = GetFootprintScale(gridWidth, gridHeight);
+    }
+
+    GameObject[] GetCorridorPrefabs()
+    {
+        if (corridorPrefabs != null && corridorPrefabs.Length > 0)
+        {
+            return corridorPrefabs;
+        }
+
+        return roomPrefabs;
+    }
+
+    Vector3 GetFootprintScale(float gridWidth, float gridHeight)
+    {
+        Vector3 scale = new Vector3(
+            gridWidth * 1.7f / 10f * 5f,
+            1f,
+            gridHeight * 1.7f / 10f * 5f
+        );
+
+        return scale;
     }
 }

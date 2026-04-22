@@ -7,12 +7,14 @@ public class BSPGenerator
     // Dividir recursivamente un área inicial en subáreas
     private int minSize; // Tamaño mínimo para dividir
     private System.Random rd;
+    private int maxSize;
 
     public int padding = 4; // Espacio para pasillos entre habitaciones
 
-    public BSPGenerator(int minSize, int seed)
+    public BSPGenerator(int minSize, int maxSize, int seed)
     {
         this.minSize = minSize;
+        this.maxSize = maxSize;
         rd = new System.Random(seed);
     }
 
@@ -83,8 +85,11 @@ public class BSPGenerator
 
             if (innerWidth >= minSize && innerHeight >= minSize)
             {
-                roomWidth = rd.Next(minSize, innerWidth + 1);
-                roomHeight = rd.Next(minSize, innerHeight + 1);
+                int maxRoomWidth = Mathf.Min(innerWidth, maxSize);
+                int maxRoomHeight = Mathf.Min(innerHeight, maxSize);
+
+                roomWidth = rd.Next(minSize, maxRoomWidth + 1);
+                roomHeight = rd.Next(minSize, maxRoomHeight + 1);
 
                 int maxX = node.Area.x + padding + (innerWidth - roomWidth);
                 int maxY = node.Area.y + padding + (innerHeight - roomHeight);

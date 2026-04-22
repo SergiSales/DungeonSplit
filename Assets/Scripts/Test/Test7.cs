@@ -10,6 +10,7 @@ public class Test7 : MonoBehaviour
     public int dungeonWidth = 100;
     public int dungeonHeight = 100;
     public int minRoomSize = 10;
+    public int maxRoomSize = 20;
     public int seed;
 
     [Header("Perlin Noise Settings")]
@@ -23,12 +24,12 @@ public class Test7 : MonoBehaviour
     [Range(0f, 10f)] public float minGraphDistanceThreshold = 2f;
     
     [Header("Gizmo/Map Settings")]
-    public bool showDelaunay = true;
-    public bool showMST = true;
-    public bool showRooms = true;
     public bool showBSPNodes = true;
     public bool showDensityMap = false;
-
+    public bool showRooms = true;
+    public bool showDelaunay = true;
+    public bool showMST = true;
+    
     [Header("MST Settings")]
     [Range(0, 20)] public int extraCycleEdges = 2;
 
@@ -57,7 +58,7 @@ public class Test7 : MonoBehaviour
             GeneratePerlinNoiseDensityMap();
         }
         
-        BSPGenerator generator = new BSPGenerator(minRoomSize, seed);
+        BSPGenerator generator = new BSPGenerator(minRoomSize, maxRoomSize, seed);
         root = generator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
         rooms = generator.CreateRooms(root);
         

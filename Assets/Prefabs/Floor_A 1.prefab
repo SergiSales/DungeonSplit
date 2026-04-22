@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 4229059735242321976}
   - component: {fileID: 2135123434791739210}
   - component: {fileID: 2687493039266207567}
-  - component: {fileID: 7827786875962949344}
+  - component: {fileID: 4144041187214185167}
   m_Layer: 0
-  m_Name: Floor_A
+  m_Name: Floor_A 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 1200385319880676783}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 85.28304, y: -0, z: 52.46778}
+  m_LocalPosition: {x: 0, y: -0, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -68,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3d7d86eec59bcfc478c3c06d9ff3565d, type: 2}
+  - {fileID: 2100000, guid: 2005fb7fa101f754ea377273a4d1d278, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -114,7 +114,7 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300004, guid: d557ab4a381fb044aa9e3ccc9981b24e, type: 3}
---- !u!114 &7827786875962949344
+--- !u!114 &4144041187214185167
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
