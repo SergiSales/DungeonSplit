@@ -16,10 +16,10 @@ public class ThirdPersonController : MonoBehaviour
     public float speed;
     public float walkSpeed = 7f;
     public float runSpeed = 11f;
-    public bool jump;
     public float jumpForce = 5f;
     public float mouseSensitivity = 30f;
     public Rigidbody rb;
+    private bool jump;
 
     public LayerMask collisionLayers;
 

@@ -6,17 +6,6 @@ using UnityEngine;
 
 public class Test10 : MonoBehaviour
 {
-    private const int CellEmpty = 0;
-    private const int CellRoom = 1;
-    private const int CellCorridor = 2;
-
-    private static readonly Vector2Int[] CardinalDirections =
-    {
-        Vector2Int.up,
-        Vector2Int.right,
-        Vector2Int.down,
-        Vector2Int.left
-    };
 
     [Header("Dungeon Settings")]
     public int dungeonWidth = 100;
@@ -41,15 +30,6 @@ public class Test10 : MonoBehaviour
     [Range(0f, 1f)] public float deadEndKeepChance = 0.85f; // % que dejamos
     [Range(0f, 1f)] public float deadEndConnectChance = 0.15f; // % que conectamos
 
-    [Header("Corridor Settings")]
-    public bool generateCorridors = true;
-    [Range(0f, 200f)] public float roomCrossPenalty = 30f;
-    [Range(0f, 2f)] public float turnPenalty = 1.2f;
-    [Range(0.1f, 2f)] public float existingCorridorCost = 0.4f;
-
-    [Header("MST Settings")]
-    [Range(0, 20)] public int extraCycleEdges = 2;
-
     [Header("Gizmo/Map Settings")]
 
     public bool showBSPNodes = true;
@@ -57,8 +37,6 @@ public class Test10 : MonoBehaviour
     public bool showRooms = true;
     public bool showDelaunay = true;
     public bool showMST = true;
-    public bool showCorridors = true;
-    public bool showCorridorCells = true;
 
     [Header("Room Spawning")]
     public bool spawnGeneratedRooms = true;
@@ -69,20 +47,12 @@ public class Test10 : MonoBehaviour
 
     [Header("UnityEngine.Debug Stats")]
     public int generatedRoomCount;
-    public int generatedCorridorCount;
-    public int carvedCorridorTiles;
-
     private BSPNode root;
     private List<Room> rooms = new List<Room>();
     private List<MSTEdge> mstEdges = new List<MSTEdge>();
     private List<MSTEdge> delaunayEdges = new List<MSTEdge>();
     private List<DelaunayTriangle> delaunayTriangles = new List<DelaunayTriangle>();
-    private List<List<Vector2Int>> corridorPaths = new List<List<Vector2Int>>();
     private float[,] densityMap;
-    private int[,] occupancyGrid;
-    private int[,] roomIndexGrid;
-    private readonly Dictionary<Vector2Int, Room> roomByCenter = new Dictionary<Vector2Int, Room>();
-    private readonly Dictionary<Vector2Int, int> roomIndexByCenter = new Dictionary<Vector2Int, int>();
 
     void Start()
     {
@@ -108,10 +78,8 @@ public class Test10 : MonoBehaviour
         }
         
         
-        // Fase 4: Construcción de lookups y navegación
+        // Fase 4: Estadisticas
         generatedRoomCount = rooms.Count;
-        BuildRoomLookups();
-        BuildNavigationGrid();
         
         if (rooms.Count > 1)
         {
@@ -123,11 +91,6 @@ public class Test10 : MonoBehaviour
             GenerateMinimumSpanningTree();
             ControlDeadEnds();
             
-            // Fase 7: Generación de corredores
-            if (generateCorridors && mstEdges.Count > 0)
-            {
-                GenerateCorridorsFromGraph();
-            }
         }
 
         if (spawnGeneratedRooms)
@@ -172,10 +135,6 @@ public class Test10 : MonoBehaviour
             DrawMSTGizmos();
         }
 
-        if (showCorridors)
-        {
-            DrawCorridorGizmos();
-        }
     }
 
     void DrawNodeGizmos(BSPNode node)
@@ -298,51 +257,6 @@ public class Test10 : MonoBehaviour
         return filteredRooms;
     }
 
-    void BuildRoomLookups()
-    {
-        roomByCenter.Clear();
-        roomIndexByCenter.Clear();
-
-        for (int i = 0; i < rooms.Count; i++)
-        {
-            roomByCenter[rooms[i].center] = rooms[i];
-            roomIndexByCenter[rooms[i].center] = i;
-        }
-    }
-
-    void BuildNavigationGrid()
-    {
-        occupancyGrid = new int[dungeonWidth, dungeonHeight];
-        roomIndexGrid = new int[dungeonWidth, dungeonHeight];
-
-        for (int x = 0; x < dungeonWidth; x++)
-        {
-            for (int y = 0; y < dungeonHeight; y++)
-            {
-                roomIndexGrid[x, y] = -1;
-            }
-        }
-
-        for (int i = 0; i < rooms.Count; i++)
-        {
-            Room room = rooms[i];
-            for (int x = room.bounds.x; x < room.bounds.xMax && x < dungeonWidth; x++)
-            {
-                for (int y = room.bounds.y; y < room.bounds.yMax && y < dungeonHeight; y++)
-                {
-                    Vector2Int cell = new Vector2Int(x, y);
-                    if (!IsInsideGrid(cell))
-                    {
-                        continue;
-                    }
-
-                    occupancyGrid[x, y] = CellRoom;
-                    roomIndexGrid[x, y] = i;
-                }
-            }
-        }
-    }
-
     void GenerateMinimumSpanningTree()
     {
         if (rooms.Count < 2)
@@ -350,10 +264,10 @@ public class Test10 : MonoBehaviour
             return;
         }
 
-        mstEdges = PrimAlgorithmFromDelaunay(delaunayEdges, rooms);
+        mstEdges = Prim(delaunayEdges, rooms);
 
         int targetExtraEdges = Mathf.RoundToInt(delaunayEdges.Count * extraConnectionFactor);
-        int addedCycles = AddCyclesToMST(targetExtraEdges);
+        AddCyclesToMST(targetExtraEdges);
     }
 
     void ControlDeadEnds()
@@ -439,264 +353,6 @@ public class Test10 : MonoBehaviour
         delaunayEdges = delaunayEdges.OrderBy(edge => edge.distance).ToList();
     }
 
-    void GenerateCorridorsFromGraph()
-    {
-        corridorPaths = new List<List<Vector2Int>>();
-        generatedCorridorCount = 0;
-        carvedCorridorTiles = 0;
-
-        foreach (MSTEdge edge in mstEdges)
-        {
-            if (!roomByCenter.TryGetValue(edge.p1, out Room startRoom) ||
-                !roomByCenter.TryGetValue(edge.p2, out Room endRoom))
-            {
-                continue;
-            }
-
-            int startRoomIndex = roomIndexByCenter[edge.p1];
-            int endRoomIndex = roomIndexByCenter[edge.p2];
-
-            Vector2Int startDoor = GetDoorCell(startRoom, endRoom.center);
-            Vector2Int endDoor = GetDoorCell(endRoom, startRoom.center);
-
-            List<Vector2Int> corridorPath = FindPathAStar(startDoor, endDoor, startRoomIndex, endRoomIndex, false);
-            if (corridorPath == null)
-            {
-                corridorPath = FindPathAStar(startDoor, endDoor, startRoomIndex, endRoomIndex, true);
-            }
-
-            if (corridorPath == null || corridorPath.Count == 0)
-            {
-                continue;
-            }
-
-            CarveCorridor(corridorPath, startRoomIndex, endRoomIndex);
-            corridorPaths.Add(new List<Vector2Int>(corridorPath));
-        }
-
-        generatedCorridorCount = corridorPaths.Count;
-    }
-
-    Vector2Int GetDoorCell(Room room, Vector2Int target)
-    {
-        int minX = room.bounds.x;
-        int maxX = room.bounds.xMax - 1;
-        int minY = room.bounds.y;
-        int maxY = room.bounds.yMax - 1;
-
-        int dx = target.x - room.center.x;
-        int dy = target.y - room.center.y;
-
-        // Determinar cuál pared está más cerca del objetivo
-        if (Mathf.Abs(dx) >= Mathf.Abs(dy))
-        {
-            // Pared izquierda o derecha
-            int x = dx >= 0 ? maxX : minX;
-            int y = (minY + maxY) / 2; // Centro de la pared
-            return new Vector2Int(x, y);
-        }
-        else
-        {
-            // Pared superior o inferior
-            int x = (minX + maxX) / 2; // Centro de la pared
-            int y = dy >= 0 ? maxY : minY;
-            return new Vector2Int(x, y);
-        }
-    }
-
-    List<Vector2Int> FindPathAStar(Vector2Int start, Vector2Int goal, int startRoomIndex, int endRoomIndex, bool allowRoomPenalty)
-    {
-        if (!IsInsideGrid(start) || !IsInsideGrid(goal))
-        {
-            return null;
-        }
-
-        List<Vector2Int> openSet = new List<Vector2Int> { start };
-        HashSet<Vector2Int> closedSet = new HashSet<Vector2Int>();
-        Dictionary<Vector2Int, Vector2Int> cameFrom = new Dictionary<Vector2Int, Vector2Int>();
-        Dictionary<Vector2Int, float> gScore = new Dictionary<Vector2Int, float> { [start] = 0f };
-        Dictionary<Vector2Int, float> fScore = new Dictionary<Vector2Int, float> { [start] = Heuristic(start, goal) };
-
-        while (openSet.Count > 0)
-        {
-            Vector2Int current = GetLowestFScore(openSet, fScore);
-            if (current == goal)
-            {
-                return ReconstructPath(cameFrom, current);
-            }
-
-            openSet.Remove(current);
-            closedSet.Add(current);
-
-            foreach (Vector2Int direction in CardinalDirections)
-            {
-                Vector2Int neighbor = current + direction;
-
-                if (closedSet.Contains(neighbor) || !IsInsideGrid(neighbor))
-                {
-                    continue;
-                }
-
-                if (!TryGetTraversalCost(neighbor, startRoomIndex, endRoomIndex, allowRoomPenalty, out float traversalCost))
-                {
-                    continue;
-                }
-                
-                float noise = Mathf.PerlinNoise(neighbor.x * 0.08f, neighbor.y * 0.08f);
-
-                float tentativeScore =
-                    gScore[current]
-                    + traversalCost
-                    + GetTurnPenalty(cameFrom, current, neighbor)
-                    + noise * 0.8f;
-
-
-                if (gScore.TryGetValue(neighbor, out float existingScore) && tentativeScore >= existingScore)
-                {
-                    continue;
-                }
-
-                cameFrom[neighbor] = current;
-                gScore[neighbor] = tentativeScore;
-                fScore[neighbor] = tentativeScore + Heuristic(neighbor, goal);
-
-                if (!openSet.Contains(neighbor))
-                {
-                    openSet.Add(neighbor);
-                }
-            }
-        }
-
-        return null;
-    }
-
-    bool TryGetTraversalCost(Vector2Int cell, int startRoomIndex, int endRoomIndex, bool allowRoomPenalty, out float cost)
-    {
-        cost = 1f;
-
-        int roomIndex = roomIndexGrid[cell.x, cell.y];
-        if (roomIndex >= 0)
-        {
-            bool isTerminalRoom = roomIndex == startRoomIndex || roomIndex == endRoomIndex;
-            if (!isTerminalRoom)
-            {
-                if (!allowRoomPenalty)
-                {
-                    return false;
-                }
-
-                cost = roomCrossPenalty;
-                return true;
-            }
-
-            cost = 1f;
-            return true;
-        }
-
-        if (occupancyGrid[cell.x, cell.y] == CellCorridor)
-        {
-            cost = existingCorridorCost;
-        }
-
-        return true;
-    }
-
-    float GetTurnPenalty(Dictionary<Vector2Int, Vector2Int> cameFrom, Vector2Int current, Vector2Int next)
-    {
-        if (!cameFrom.TryGetValue(current, out Vector2Int previous))
-        {
-            return 0f;
-        }
-
-        Vector2Int previousDirection = current - previous;
-        Vector2Int newDirection = next - current;
-        return previousDirection == newDirection ? 0f : turnPenalty;
-    }
-
-    void CarveCorridor(List<Vector2Int> path, int startRoomIndex, int endRoomIndex)
-    {
-        foreach (Vector2Int cell in path)
-        {
-            int roomIndex = roomIndexGrid[cell.x, cell.y];
-            if (roomIndex >= 0 && roomIndex != startRoomIndex && roomIndex != endRoomIndex)
-            {
-                continue;
-            }
-
-            if (occupancyGrid[cell.x, cell.y] == CellEmpty)
-            {
-                occupancyGrid[cell.x, cell.y] = CellCorridor;
-                carvedCorridorTiles++;
-            }
-        }
-    }
-
-    List<Vector2Int> SimplifyPath(List<Vector2Int> path)
-    {
-        if (path.Count <= 2)
-        {
-            return new List<Vector2Int>(path);
-        }
-
-        List<Vector2Int> simplified = new List<Vector2Int> { path[0] };
-        Vector2Int lastDirection = path[1] - path[0];
-
-        for (int i = 1; i < path.Count - 1; i++)
-        {
-            Vector2Int currentDirection = path[i + 1] - path[i];
-            if (currentDirection != lastDirection)
-            {
-                simplified.Add(path[i]);
-                lastDirection = currentDirection;
-            }
-        }
-
-        simplified.Add(path[path.Count - 1]);
-        return simplified;
-    }
-
-    Vector2Int GetLowestFScore(List<Vector2Int> openSet, Dictionary<Vector2Int, float> fScore)
-    {
-        Vector2Int best = openSet[0];
-        float bestScore = fScore.TryGetValue(best, out float score) ? score : float.MaxValue;
-
-        for (int i = 1; i < openSet.Count; i++)
-        {
-            Vector2Int candidate = openSet[i];
-            float candidateScore = fScore.TryGetValue(candidate, out float value) ? value : float.MaxValue;
-            if (candidateScore < bestScore)
-            {
-                best = candidate;
-                bestScore = candidateScore;
-            }
-        }
-
-        return best;
-    }
-
-    float Heuristic(Vector2Int current, Vector2Int goal)
-    {
-        return Mathf.Abs(current.x - goal.x) + Mathf.Abs(current.y - goal.y);
-    }
-
-    List<Vector2Int> ReconstructPath(Dictionary<Vector2Int, Vector2Int> cameFrom, Vector2Int current)
-    {
-        List<Vector2Int> path = new List<Vector2Int> { current };
-
-        while (cameFrom.TryGetValue(current, out Vector2Int previous))
-        {
-            current = previous;
-            path.Add(current);
-        }
-
-        path.Reverse();
-        return path;
-    }
-
-    bool IsInsideGrid(Vector2Int cell)
-    {
-        return cell.x >= 0 && cell.x < dungeonWidth && cell.y >= 0 && cell.y < dungeonHeight;
-    }
 
     void AddEdgeNormalized(HashSet<(Vector2Int, Vector2Int)> edges, Vector2Int p1, Vector2Int p2)
     {
@@ -710,7 +366,7 @@ public class Test10 : MonoBehaviour
         edges.Add((p1, p2));
     }
 
-    List<MSTEdge> PrimAlgorithmFromDelaunay(List<MSTEdge> edges, List<Room> roomList)
+    List<MSTEdge> Prim(List<MSTEdge> edges, List<Room> roomList)
     {
         List<MSTEdge> mst = new List<MSTEdge>();
         HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
@@ -1067,34 +723,6 @@ public class Test10 : MonoBehaviour
             Gizmos.DrawLine(p1, p2);
             Gizmos.DrawLine(p2, p3);
             Gizmos.DrawLine(p3, p1);
-        }
-    }
-
-    void DrawCorridorGizmos()
-    {
-        if (corridorPaths == null || corridorPaths.Count == 0)
-        {
-            return;
-        }
-
-        Gizmos.color = Color.yellow;
-        foreach (List<Vector2Int> path in corridorPaths)
-        {
-            if (showCorridorCells)
-            {
-                foreach (Vector2Int cell in path)
-                {
-                    Gizmos.DrawCube(new Vector3(cell.x, 0.05f, cell.y), new Vector3(0.7f, 0.1f, 0.7f));
-                }
-            }
-
-            List<Vector2Int> previewPath = SimplifyPath(path);
-            for (int i = 0; i < previewPath.Count - 1; i++)
-            {
-                Vector3 from = new Vector3(previewPath[i].x, 0.06f, previewPath[i].y);
-                Vector3 to = new Vector3(previewPath[i + 1].x, 0.06f, previewPath[i + 1].y);
-                Gizmos.DrawLine(from, to);
-            }
         }
     }
 

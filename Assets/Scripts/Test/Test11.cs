@@ -29,15 +29,6 @@ public class Test11 : MonoBehaviour
     [Range(0f, 1f)] public float deadEndKeepChance = 0.85f;
     [Range(0f, 1f)] public float deadEndConnectChance = 0.15f;
 
-    [Header("Corridor Settings")]
-    public bool generateCorridors = true;
-    [Range(0f, 200f)] public float roomCrossPenalty = 30f;
-    [Range(0f, 2f)] public float turnPenalty = 1.2f;
-    [Range(0.1f, 2f)] public float existingCorridorCost = 0.4f;
-
-    [Header("MST Settings")]
-    [Range(0, 20)] public int extraCycleEdges = 2;
-
     [Header("Gizmo/Map Settings")]
 
     public bool showBSPNodes = true;
@@ -45,30 +36,32 @@ public class Test11 : MonoBehaviour
     public bool showRooms = true;
     public bool showDelaunay = true;
     public bool showMST = true;
-    public bool showCorridors = true;
-    public bool showCorridorCells = true;
 
     [Header("Room Spawning")]
-    public bool spawnGeneratedRooms = true;
     public GameObject[] roomPrefabs;
     public float cellSize = 10f;
     public float roomHeight = 0f;
     public Transform roomsParent;
 
-    [Header("Corridor Spawning")]
-    public bool spawnGeneratedCorridors = true;
-    public GameObject[] corridorPrefabs;
-    public Transform corridorsParent;
+    [Header("Wall Spawning")]
+    public GameObject wallPrefab;
+    public float wallHeight = 3f;
+    public float wallThickness = 0.5f;
+
+    [Header("Floor Objects")]
+    public GameObject[] floorObjectsPrefabs;
+    [Range(0f, 1f)] public float floorObjectsSpawnChance = 0.3f;
+
+    [Header("Wall Objects")]
+    public GameObject[] wallObjectsPrefabs;
+    [Range(0f, 1f)] public float wallObjectsSpawnChance = 0.2f;
 
     [Header("Player Spawn")]
-    public bool spawnPlayerOnStart = true;
     public GameObject playerPrefab;
     public float playerSpawnHeight = 1f;
 
     [Header("Debug Stats")]
     public int generatedRoomCount;
-    public int generatedCorridorCount;
-    public int carvedCorridorTiles;
 
     #endregion
 
@@ -79,19 +72,14 @@ public class Test11 : MonoBehaviour
     private List<MSTEdge> mstEdges = new List<MSTEdge>();
     private List<MSTEdge> delaunayEdges = new List<MSTEdge>();
     private List<DelaunayTriangle> delaunayTriangles = new List<DelaunayTriangle>();
-    private List<List<Vector2Int>> corridorPaths = new List<List<Vector2Int>>();
     private float[,] densityMap;
-    private int[,] occupancyGrid;
-    private int[,] roomIndexGrid;
-    private Dictionary<Vector2Int, Room> roomByCenter = new Dictionary<Vector2Int, Room>();
-    private Dictionary<Vector2Int, int> roomIndexByCenter = new Dictionary<Vector2Int, int>();
+    private bool bossRoomAssigned = false;
+    private bool playerSpawned = false;
 
     // Generators
     private DensityMapGenerator densityGenerator;
     private DelaunayGenerator delaunayGenerator;
     private MSTGenerator mstGenerator;
-    private CorridorGenerator corridorGenerator;
-    private GridUtilities gridUtilities;
     private DungeonVisualization visualization;
     #endregion
     void Start()
@@ -114,13 +102,10 @@ public class Test11 : MonoBehaviour
         // Filtrado por densidad
         if (usePerlinNoise && densityMap != null)
         {
-            densityGenerator.FilterRoomsByDensity(ref rooms, densityMap, densityThreshold);
+            densityGenerator.FilterRoomsByDensity(rooms, densityMap, densityThreshold);
         }
 
-        // Construccion de lookups y navegacion
         generatedRoomCount = rooms.Count;
-        gridUtilities.BuildRoomLookups(rooms, out roomByCenter, out roomIndexByCenter);
-        gridUtilities.BuildNavigationGrid(rooms, dungeonWidth, dungeonHeight, out occupancyGrid, out roomIndexGrid);
 
         if (rooms.Count > 1)
         {
@@ -159,40 +144,11 @@ public class Test11 : MonoBehaviour
                 minGraphDistanceThreshold,
                 targetExtraEdges);
 
-            // Generacion de corredores
-            if (generateCorridors && mstEdges.Count > 0)
-            {
-                corridorGenerator.GenerateCorridors(
-                    mstEdges,
-                    roomByCenter,
-                    roomIndexByCenter,
-                    occupancyGrid,
-                    roomIndexGrid,
-                    dungeonWidth,
-                    dungeonHeight,
-                    roomCrossPenalty,
-                    turnPenalty,
-                    existingCorridorCost,
-                    out corridorPaths,
-                    out carvedCorridorTiles);
-                generatedCorridorCount = corridorPaths.Count;
-            }
         }
 
-        if (spawnGeneratedRooms)
-        {
-            SpawnRooms();
-        }
+        SpawnRooms();
+        AssignRoomTypes();
 
-        if (spawnGeneratedCorridors)
-        {
-            SpawnCorridors();
-        }
-
-        if (spawnPlayerOnStart)
-        {
-            SpawnPlayerInRandomRoom();
-        }
 
         
 
@@ -232,11 +188,6 @@ public class Test11 : MonoBehaviour
         {
             visualization.DrawMSTGizmos(mstEdges);
         }
-
-        if (showCorridors)
-        {
-            visualization.DrawCorridorGizmos(corridorPaths, showCorridorCells);
-        }
     }
 
     private void InitializeGenerators()
@@ -244,36 +195,48 @@ public class Test11 : MonoBehaviour
         densityGenerator = new DensityMapGenerator(dungeonWidth, dungeonHeight, seed);
         delaunayGenerator = new DelaunayGenerator();
         mstGenerator = new MSTGenerator();
-        corridorGenerator = new CorridorGenerator();
-        gridUtilities = new GridUtilities();
         visualization = new DungeonVisualization();
     }
 
-    void SpawnRooms()
+    string[] SpawnRooms()
     {
         if (roomPrefabs == null || roomPrefabs.Length == 0)
         {
             UnityEngine.Debug.LogWarning("[Test11] No room prefabs assigned.");
-            return;
+            return new string[] { "[Test11] No room prefabs assigned." };
         }
 
         Transform parent = roomsParent != null ? roomsParent : transform;
         int roomIndex = 1;
 
+        string[] names = new string[rooms.Count];
+
         foreach (Room room in rooms)
         {
-            SpawnRoom(room, parent, roomIndex);
+            names[roomIndex - 1] = SpawnRoom(room, parent, roomIndex);
             roomIndex++;
         }
+        return names;
     }
 
-    void SpawnRoom(Room room, Transform parent, int roomIndex)
+    string SpawnRoom(Room room, Transform parent, int roomIndex)
     {
         Vector3 worldPos = GridToWorld(room.center);
         GameObject prefab = roomPrefabs[Random.Range(0, roomPrefabs.Length)];
         GameObject instance = Instantiate(prefab, worldPos, Quaternion.identity, parent);
         instance.name = $"suelo{roomIndex}";
         ScaleRoom(instance.transform, room);
+
+        // Crear paredes alrededor de la sala
+        CreateWalls(instance.transform, room, roomIndex);
+
+        // Crear objetos en el suelo
+        SpawnFloorObjects(instance.transform, room, roomIndex);
+
+        // Crear objetos en las paredes
+        SpawnWallObjects(instance.transform, room, roomIndex);
+
+        return instance.name;
     }
 
     Vector3 GridToWorld(Vector2Int gridPos)
@@ -290,15 +253,9 @@ public class Test11 : MonoBehaviour
         );
     }
 
-    void SpawnPlayerInRandomRoom()
+    void SpawnPlayer(int roomIndex)
     {
-        if (rooms == null || rooms.Count == 0)
-        {
-            UnityEngine.Debug.LogWarning("[Test11] Cannot spawn player because no rooms were generated.");
-            return;
-        }
-
-        Room spawnRoom = rooms[Random.Range(0, rooms.Count)];
+        Room spawnRoom = rooms[roomIndex];
         Vector3 spawnPosition = GridToWorld(spawnRoom.center) + Vector3.up * playerSpawnHeight;
 
         ThirdPersonController player = FindAnyObjectByType<ThirdPersonController>();
@@ -330,9 +287,64 @@ public class Test11 : MonoBehaviour
         }
 
         DisableOtherCameras(player.transform);
-        UnityEngine.Debug.Log($"[Test11] Player spawned in room centered at {spawnRoom.center}.");
     }
 
+    void AssignRoomTypes()
+    {
+        if (rooms == null || rooms.Count == 0)
+        {
+            UnityEngine.Debug.LogWarning("[Test11] Cannot assign room types because no rooms were generated.");
+            return;
+        }
+
+        for (int i = 0; i < rooms.Count; i++)
+        {
+            Random.Range(0f, 1f);
+            Room room = rooms[i];
+            if (!bossRoomAssigned && Random.value < 0.1f)
+            {
+                room.type = roomTypes.Boss;
+                bossRoomAssigned = true;
+            }
+            else if (!playerSpawned && Random.value < 0.2f)
+            {
+                room.type = roomTypes.Player;
+                SpawnPlayer(i);
+                playerSpawned = true;
+            }
+            else if (Random.value < 0.8f)
+            {
+                room.type = roomTypes.Wave;
+            }
+            else
+            {
+                room.type = roomTypes.Treasure;
+            }
+        }
+
+        // Garantizar que siempre se asigne una sala de Boss si no se asignó
+        if (!bossRoomAssigned && rooms.Count > 0)
+        {
+            int bossRoomIndex = Random.Range(0, rooms.Count);
+            rooms[bossRoomIndex].type = roomTypes.Boss;
+            bossRoomAssigned = true;
+        }
+
+        // Garantizar que siempre se asigne una sala de Player si no se asignó
+        if (!playerSpawned && rooms.Count > 0)
+        {
+            int playerRoomIndex = Random.Range(0, rooms.Count);
+            // Evitar asignar Player a la misma sala que Boss
+            while (playerRoomIndex < rooms.Count && rooms[playerRoomIndex].type == roomTypes.Boss)
+            {
+                playerRoomIndex = (playerRoomIndex + 1) % rooms.Count;
+            }
+            rooms[playerRoomIndex].type = roomTypes.Player;
+            playerSpawned = true;
+            SpawnPlayer(playerRoomIndex);
+        }
+        
+    }
     void DisableOtherCameras(Transform playerRoot)
     {
         Camera[] cameras = FindObjectsByType<Camera>();
@@ -348,79 +360,146 @@ public class Test11 : MonoBehaviour
         roomTransform.localScale = GetFootprintScale(room.bounds.width, room.bounds.height);
     }
 
-    void SpawnCorridors()
+    void CreateWalls(Transform roomParent, Room room, int roomIndex)
     {
-        if (corridorPaths == null || corridorPaths.Count == 0)
+        if (wallPrefab == null)
+        {
+            UnityEngine.Debug.LogWarning("[Test11] No wall prefab assigned.");
+            return;
+        }
+
+        // Obtener el tamaño escalado de la sala
+        Vector3 roomScale = GetFootprintScale(room.bounds.width, room.bounds.height);
+        float roomWorldWidth = roomScale.x;
+        float roomWorldDepth = roomScale.z;
+
+        Vector3 roomCenter = roomParent.position;
+
+        // Crear 4 paredes (arriba, abajo, izquierda, derecha en vista superior)
+        // Pared frente (Z+)
+        CreateWall(roomParent, roomIndex, 
+            roomCenter + new Vector3(0, wallHeight / 2, roomWorldDepth / 2),
+            new Vector3(roomWorldWidth, wallHeight, wallThickness),
+            "front");
+
+        // Pared atrás (Z-)
+        CreateWall(roomParent, roomIndex, 
+            roomCenter + new Vector3(0, wallHeight / 2, -roomWorldDepth / 2),
+            new Vector3(roomWorldWidth, wallHeight, wallThickness),
+            "back");
+
+        // Pared derecha (X+)
+        CreateWall(roomParent, roomIndex, 
+            roomCenter + new Vector3(roomWorldWidth / 2, wallHeight / 2, 0),
+            new Vector3(wallThickness, wallHeight, roomWorldDepth),
+            "right");
+
+        // Pared izquierda (X-)
+        CreateWall(roomParent, roomIndex, 
+            roomCenter + new Vector3(-roomWorldWidth / 2, wallHeight / 2, 0),
+            new Vector3(wallThickness, wallHeight, roomWorldDepth),
+            "left");
+    }
+
+    void CreateWall(Transform roomParent, int roomIndex, Vector3 position, Vector3 scale, string wallName)
+    {
+        GameObject wall = Instantiate(wallPrefab, position, Quaternion.identity, roomParent);
+        wall.name = $"pared_{wallName}_{roomIndex}";
+        wall.transform.localScale = scale;
+    }
+
+    void SpawnFloorObjects(Transform roomParent, Room room, int roomIndex)
+    {
+        if (floorObjectsPrefabs == null || floorObjectsPrefabs.Length == 0)
         {
             return;
         }
 
-        GameObject[] prefabsToUse = GetCorridorPrefabs();
-        if (prefabsToUse == null || prefabsToUse.Length == 0)
+        Vector3 roomScale = GetFootprintScale(room.bounds.width, room.bounds.height);
+        float roomWorldWidth = roomScale.x;
+        float roomWorldDepth = roomScale.z;
+        Vector3 roomCenter = roomParent.position;
+
+        // Generar objetos de suelo aleatoriamente dentro de la sala
+        int objectCount = Random.Range(1, Mathf.Max(2, Mathf.RoundToInt(room.bounds.width * room.bounds.height * 0.01f)));
+        
+        for (int i = 0; i < objectCount; i++)
         {
-            UnityEngine.Debug.LogWarning("[Test11] No corridor prefabs assigned and no room prefabs available as fallback.");
+            if (Random.value < floorObjectsSpawnChance)
+            {
+                float randomX = Random.Range(-roomWorldWidth / 2 + 1f, roomWorldWidth / 2 - 1f);
+                float randomZ = Random.Range(-roomWorldDepth / 2 + 1f, roomWorldDepth / 2 - 1f);
+                Vector3 spawnPos = roomCenter + new Vector3(randomX, 0, randomZ);
+
+                GameObject floorObjPrefab = floorObjectsPrefabs[Random.Range(0, floorObjectsPrefabs.Length)];
+                GameObject floorObj = Instantiate(floorObjPrefab, spawnPos, Quaternion.Euler(0, Random.Range(0f, 360f), 0), roomParent);
+                floorObj.name = $"floorObj_{roomIndex}_{i}";
+            }
+        }
+    }
+
+    void SpawnWallObjects(Transform roomParent, Room room, int roomIndex)
+    {
+        if (wallObjectsPrefabs == null || wallObjectsPrefabs.Length == 0)
+        {
             return;
         }
 
-        Transform parent = corridorsParent != null ? corridorsParent : transform;
-        int corridorIndex = 1;
+        Vector3 roomScale = GetFootprintScale(room.bounds.width, room.bounds.height);
+        float roomWorldWidth = roomScale.x;
+        float roomWorldDepth = roomScale.z;
+        Vector3 roomCenter = roomParent.position;
 
-        foreach (List<Vector2Int> path in corridorPaths)
-        {
-            corridorIndex = SpawnCorridorPath(path, prefabsToUse, parent, corridorIndex);
-        }
+        // Objetos en pared frente
+        SpawnObjectsOnWall(roomParent, roomIndex, 
+            roomCenter, roomWorldWidth, wallThickness, wallHeight, "front",
+            new Vector3(0, 0, roomWorldDepth / 2), Vector3.forward);
+
+        // Objetos en pared atrás
+        SpawnObjectsOnWall(roomParent, roomIndex, 
+            roomCenter, roomWorldWidth, wallThickness, wallHeight, "back",
+            new Vector3(0, 0, -roomWorldDepth / 2), Vector3.back);
+
+        // Objetos en pared derecha
+        SpawnObjectsOnWall(roomParent, roomIndex, 
+            roomCenter, roomWorldDepth, wallThickness, wallHeight, "right",
+            new Vector3(roomWorldWidth / 2, 0, 0), Vector3.right);
+
+        // Objetos en pared izquierda
+        SpawnObjectsOnWall(roomParent, roomIndex, 
+            roomCenter, roomWorldDepth, wallThickness, wallHeight, "left",
+            new Vector3(-roomWorldWidth / 2, 0, 0), Vector3.left);
     }
 
-    int SpawnCorridorPath(List<Vector2Int> path, GameObject[] prefabsToUse, Transform parent, int corridorIndex)
+    void SpawnObjectsOnWall(Transform roomParent, int roomIndex, Vector3 roomCenter, 
+        float wallLength, float wallThickness, float wallHeight, string wallName, 
+        Vector3 wallOffset, Vector3 wallDirection)
     {
-        if (path == null || path.Count == 0)
+        int objectCount = Random.Range(1, Mathf.Max(2, Mathf.RoundToInt(wallLength * 0.05f)));
+
+        for (int i = 0; i < objectCount; i++)
         {
-            return corridorIndex;
+            if (Random.value < wallObjectsSpawnChance)
+            {
+                float randomPos = Random.Range(-wallLength / 2 + 0.5f, wallLength / 2 - 0.5f);
+                float randomHeight = Random.Range(0.5f, wallHeight - 0.5f);
+
+                Vector3 spawnPos;
+                if (wallName == "front" || wallName == "back")
+                {
+                    spawnPos = roomCenter + new Vector3(randomPos, randomHeight, wallOffset.z);
+                }
+                else // right or left
+                {
+                    spawnPos = roomCenter + new Vector3(wallOffset.x, randomHeight, randomPos);
+                }
+
+                GameObject wallObjPrefab = wallObjectsPrefabs[Random.Range(0, wallObjectsPrefabs.Length)];
+                Quaternion rotation = Quaternion.LookRotation(-wallDirection);
+                GameObject wallObj = Instantiate(wallObjPrefab, spawnPos, rotation, roomParent);
+                wallObj.name = $"wallObj_{wallName}_{roomIndex}_{i}";
+            }
         }
-
-        List<Vector2Int> simplifiedPath = corridorGenerator.SimplifyPath(path);
-        if (simplifiedPath.Count == 1)
-        {
-            SpawnCorridorSegment(simplifiedPath[0], simplifiedPath[0], prefabsToUse, parent, corridorIndex);
-            return corridorIndex + 1;
-        }
-
-        for (int i = 0; i < simplifiedPath.Count - 1; i++)
-        {
-            SpawnCorridorSegment(simplifiedPath[i], simplifiedPath[i + 1], prefabsToUse, parent, corridorIndex);
-            corridorIndex++;
-        }
-
-        return corridorIndex;
-    }
-
-    void SpawnCorridorSegment(Vector2Int startCell, Vector2Int endCell, GameObject[] prefabsToUse, Transform parent, int corridorIndex)
-    {
-        int deltaX = Mathf.Abs(endCell.x - startCell.x);
-        int deltaY = Mathf.Abs(endCell.y - startCell.y);
-        int segmentLength = Mathf.Max(deltaX, deltaY) + 1;
-
-        float gridWidth = deltaX > 0 ? segmentLength : 1f;
-        float gridHeight = deltaY > 0 ? segmentLength : 1f;
-        Vector2 midpoint = new Vector2(
-            (startCell.x + endCell.x) * 0.5f,
-            (startCell.y + endCell.y) * 0.5f
-        );
-
-        GameObject prefab = prefabsToUse[Random.Range(0, prefabsToUse.Length)];
-        GameObject instance = Instantiate(prefab, GridToWorld(midpoint, roomHeight), Quaternion.identity, parent);
-        instance.name = $"pasillo{corridorIndex}";
-        instance.transform.localScale = GetFootprintScale(gridWidth, gridHeight);
-    }
-
-    GameObject[] GetCorridorPrefabs()
-    {
-        if (corridorPrefabs != null && corridorPrefabs.Length > 0)
-        {
-            return corridorPrefabs;
-        }
-
-        return roomPrefabs;
     }
 
     Vector3 GetFootprintScale(float gridWidth, float gridHeight)

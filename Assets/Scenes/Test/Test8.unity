@@ -461,7 +461,7 @@ GameObject:
   - component: {fileID: 1797294783}
   - component: {fileID: 1797294784}
   m_Layer: 0
-  m_Name: test(corridors)
+  m_Name: test(mst)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -504,21 +504,13 @@ MonoBehaviour:
   loopQualityBias: 0.7
   randomnessFactor: 0.2
   minGraphDistanceThreshold: 2
-  generateCorridors: 1
-  roomCrossPenalty: 50
-  turnPenalty: 0.35
-  existingCorridorCost: 0.75
   extraCycleEdges: 2
   showDelaunay: 0
   showMST: 0
   showRooms: 1
   showBSPNodes: 0
   showDensityMap: 0
-  showCorridors: 1
-  showCorridorCells: 1
   generatedRoomCount: 0
-  generatedCorridorCount: 0
-  carvedCorridorTiles: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

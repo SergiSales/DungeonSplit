@@ -70,34 +70,6 @@ public class DungeonVisualization
         }
     }
 
-    public void DrawCorridorGizmos(List<List<Vector2Int>> corridorPaths, bool showCorridorCells)
-    {
-        if (corridorPaths == null || corridorPaths.Count == 0)
-        {
-            return;
-        }
-
-        Gizmos.color = Color.yellow;
-        foreach (List<Vector2Int> path in corridorPaths)
-        {
-            if (showCorridorCells)
-            {
-                foreach (Vector2Int cell in path)
-                {
-                    Gizmos.DrawCube(new Vector3(cell.x, 0.05f, cell.y), new Vector3(0.7f, 0.1f, 0.7f));
-                }
-            }
-
-            CorridorGenerator corridorGen = new CorridorGenerator();
-            List<Vector2Int> previewPath = corridorGen.SimplifyPath(path);
-            for (int i = 0; i < previewPath.Count - 1; i++)
-            {
-                Vector3 from = new Vector3(previewPath[i].x, 0.06f, previewPath[i].y);
-                Vector3 to = new Vector3(previewPath[i + 1].x, 0.06f, previewPath[i + 1].y);
-                Gizmos.DrawLine(from, to);
-            }
-        }
-    }
 
     public void DrawDensityMapGizmos(float[,] densityMap, int dungeonWidth, int dungeonHeight, float densityThreshold)
     {

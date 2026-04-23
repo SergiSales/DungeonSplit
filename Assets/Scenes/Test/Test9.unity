@@ -507,21 +507,12 @@ MonoBehaviour:
   extraConnectionFactor: 0.35
   deadEndKeepChance: 0.85
   deadEndConnectChance: 0.15
-  generateCorridors: 1
-  roomCrossPenalty: 30
-  turnPenalty: 1.2
-  existingCorridorCost: 0.4
-  extraCycleEdges: 2
   showDelaunay: 0
   showMST: 1
   showRooms: 1
   showBSPNodes: 0
   showDensityMap: 0
-  showCorridors: 1
-  showCorridorCells: 1
   generatedRoomCount: 0
-  generatedCorridorCount: 0
-  carvedCorridorTiles: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

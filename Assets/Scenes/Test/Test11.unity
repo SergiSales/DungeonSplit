@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 743359250}
   - component: {fileID: 743359251}
   m_Layer: 0
-  m_Name: "test(assets pasillo, mejorar escala y a\xF1adir personaje)"
+  m_Name: "test(assets salas, mejorar escala y a\xF1adir personaje)"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -166,6 +166,7 @@ MonoBehaviour:
   dungeonWidth: 100
   dungeonHeight: 100
   minRoomSize: 14
+  maxRoomSize: 20
   seed: 0
   usePerlinNoise: 1
   perlinScale: 0.05
@@ -176,34 +177,27 @@ MonoBehaviour:
   extraConnectionFactor: 0.35
   deadEndKeepChance: 0.85
   deadEndConnectChance: 0.15
-  generateCorridors: 1
-  roomCrossPenalty: 30
-  turnPenalty: 1.2
-  existingCorridorCost: 0.4
-  extraCycleEdges: 2
   showBSPNodes: 0
   showDensityMap: 0
   showRooms: 1
   showDelaunay: 0
   showMST: 1
-  showCorridors: 1
-  showCorridorCells: 1
-  spawnGeneratedRooms: 1
   roomPrefabs:
   - {fileID: 1200385319880676783, guid: bc41f13fa4f656b4ebe3733d9cfbd040, type: 3}
   - {fileID: 1200385319880676783, guid: 765623faae4dad548b31eecfc750ca4c, type: 3}
   cellSize: 1
   roomHeight: 0
   roomsParent: {fileID: 0}
-  spawnGeneratedCorridors: 1
-  corridorPrefabs: []
-  corridorsParent: {fileID: 0}
-  spawnPlayerOnStart: 1
+  wallPrefab: {fileID: 100000, guid: 91d652779ec7140488b6b8e360497937, type: 3}
+  wallHeight: 3
+  wallThickness: 0.5
+  floorObjectsPrefabs: []
+  floorObjectsSpawnChance: 0.3
+  wallObjectsPrefabs: []
+  wallObjectsSpawnChance: 0.2
   playerPrefab: {fileID: 8805717297518738770, guid: f0f8bb73672a17541b020884b8c83882, type: 3}
   playerSpawnHeight: 1
   generatedRoomCount: 0
-  generatedCorridorCount: 0
-  carvedCorridorTiles: 0
 --- !u!1 &1100911144
 GameObject:
   m_ObjectHideFlags: 0

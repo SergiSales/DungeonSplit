@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using System.Collections.Generic;
 public class DensityMapGenerator
 {
     private int dungeonWidth;
@@ -30,9 +30,9 @@ public class DensityMapGenerator
         return densityMap;
     }
     
-    public void FilterRoomsByDensity(ref System.Collections.Generic.List<Room> rooms, float[,] densityMap, float densityThreshold)
+    public void FilterRoomsByDensity(List<Room> rooms, float[,] densityMap, float densityThreshold)
     {
-        System.Collections.Generic.List<Room> filteredRooms = new System.Collections.Generic.List<Room>();
+        List<Room> filteredRooms = new List<Room>();
         
         foreach (Room room in rooms)
         {

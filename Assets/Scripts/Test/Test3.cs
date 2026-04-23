@@ -16,7 +16,6 @@ public class Test3 : MonoBehaviour
 
     private BSPNode root;
     private List<Room> rooms;
-    private List<Corridor> corridors;
 
     void Start()
     {

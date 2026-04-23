@@ -11,5 +11,7 @@ public struct IntRect
     }
 
     public int xMax => x + width;
+    public int xMin => x;
     public int yMax => y + height;
+    public int yMin => y;
 }

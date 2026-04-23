@@ -8,6 +8,6 @@ public class AutoTile : MonoBehaviour
     {
         rend = GetComponent<Renderer>();
         Vector3 scale = transform.localScale;
-        rend.material.mainTextureScale = new Vector2(scale.z * 2f, scale.x * 2f);
+        rend.material.mainTextureScale = new Vector2(scale.z, scale.x);
     }
 }

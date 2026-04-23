@@ -9,7 +9,7 @@ public class BSPGenerator
     private System.Random rd;
     private int maxSize;
 
-    public int padding = 4; // Espacio para pasillos entre habitaciones
+    public int padding = 4; // Margen entre habitaciones
 
     public BSPGenerator(int minSize, int maxSize, int seed)
     {
@@ -74,7 +74,7 @@ public class BSPGenerator
         // Crear una sala por hoja, recorrer el arbol recursivamente
         if (node.IsLeaf)
         {
-            // Espacio para pasillos
+            // Margen para separar habitaciones
             int innerWidth = node.Area.width - padding * 2;
             int innerHeight = node.Area.height - padding * 2;
 
@@ -108,49 +108,6 @@ public class BSPGenerator
             CollectLeafRooms(node.left, rooms);
             CollectLeafRooms(node.right, rooms);
         }
-    }
-
-
-
-// Conectar habitaciones recursivamente, creando pasillos entre ellas
-    private Room ConnectRooms(BSPNode node, List<Corridor> corridors)
-    {
-        if (node == null)
-        {
-            return null;
-        }
-
-        if (node.IsLeaf)
-        {
-            return node.Room;
-        }
-
-        Room leftRoom = ConnectRooms(node.left, corridors);
-        Room rightRoom = ConnectRooms(node.right, corridors);
-
-        if (leftRoom != null && rightRoom != null)
-        {
-            corridors.Add(CreateCorridor(leftRoom.center, rightRoom.center));
-        }
-
-        node.Room = rd.NextDouble() < 0.5 ? leftRoom : rightRoom;
-        return node.Room;
-    }
-
-// Crear el pasillo indicado
-    private Corridor CreateCorridor(Vector2Int start, Vector2Int end)
-    {
-        if (start.x == end.x || start.y == end.y)
-        {
-            return new Corridor(start, end);
-        }
-
-        bool horizontalFirst = rd.NextDouble() < 0.5;
-        Vector2Int bend = horizontalFirst
-            ? new Vector2Int(end.x, start.y)
-            : new Vector2Int(start.x, end.y);
-
-        return new Corridor(start, end, bend);
     }
 
 }
