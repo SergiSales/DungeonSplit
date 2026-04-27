@@ -38,7 +38,7 @@ public class Test11 : MonoBehaviour
     public bool showMST = true;
 
     [Header("Room Spawning")]
-    public GameObject[] roomPrefabs;
+    public GameObject floorPrefab;
     public float cellSize = 10f;
     public float roomHeight = 0f;
     public Transform roomsParent;
@@ -46,8 +46,7 @@ public class Test11 : MonoBehaviour
     [Header("Wall Spawning")]
     public GameObject wallPrefab;
     public float wallHeight = 3f;
-    public float wallThickness = 0.5f;
-
+    public float wallThickness = 0.15f;
     [Header("Floor Objects")]
     public GameObject[] floorObjectsPrefabs;
     [Range(0f, 1f)] public float floorObjectsSpawnChance = 0.3f;
@@ -102,7 +101,7 @@ public class Test11 : MonoBehaviour
         // Filtrado por densidad
         if (usePerlinNoise && densityMap != null)
         {
-            densityGenerator.FilterRoomsByDensity(rooms, densityMap, densityThreshold);
+            rooms = densityGenerator.FilterRoomsByDensity(rooms, densityMap, densityThreshold);
         }
 
         generatedRoomCount = rooms.Count;
@@ -198,59 +197,81 @@ public class Test11 : MonoBehaviour
         visualization = new DungeonVisualization();
     }
 
-    string[] SpawnRooms()
+void SpawnRooms()
     {
-        if (roomPrefabs == null || roomPrefabs.Length == 0)
+        if (floorPrefab == null)
         {
-            UnityEngine.Debug.LogWarning("[Test11] No room prefabs assigned.");
-            return new string[] { "[Test11] No room prefabs assigned." };
+            UnityEngine.Debug.LogWarning("[Test11] No room prefab assigned.");
+            UnityEngine.Debug.Log("[Test11] No room prefab assigned.");
+            return;
         }
 
         Transform parent = roomsParent != null ? roomsParent : transform;
-        int roomIndex = 1;
 
-        string[] names = new string[rooms.Count];
 
         foreach (Room room in rooms)
         {
-            names[roomIndex - 1] = SpawnRoom(room, parent, roomIndex);
-            roomIndex++;
+            SpawnFloor(room, parent);
+            SpawnWalls(room, parent);
         }
-        return names;
+        return;
     }
 
-    string SpawnRoom(Room room, Transform parent, int roomIndex)
+    string SpawnFloor(Room room, Transform parent)
     {
         Vector3 worldPos = GridToWorld(room.center);
-        GameObject prefab = roomPrefabs[Random.Range(0, roomPrefabs.Length)];
-        GameObject instance = Instantiate(prefab, worldPos, Quaternion.identity, parent);
-        instance.name = $"suelo{roomIndex}";
+        GameObject instance = Instantiate(floorPrefab, worldPos, Quaternion.identity, parent);
         ScaleRoom(instance.transform, room);
-
-        // Crear paredes alrededor de la sala
-        CreateWalls(instance.transform, room, roomIndex);
-
-        // Crear objetos en el suelo
-        SpawnFloorObjects(instance.transform, room, roomIndex);
-
-        // Crear objetos en las paredes
-        SpawnWallObjects(instance.transform, room, roomIndex);
 
         return instance.name;
     }
 
-    Vector3 GridToWorld(Vector2Int gridPos)
+    void SpawnWalls(Room room, Transform parent)
     {
-        return GridToWorld((Vector2)gridPos, roomHeight);
+        if (wallPrefab == null) return;
+
+        Vector3 bottomLeft = GridToWorld(room.bottomLeft);
+        Vector3 bottomRight = GridToWorld(room.bottomRight);
+        Vector3 topLeft = GridToWorld(room.topLeft);
+        Vector3 topRight = GridToWorld(room.topRight);
+
+        // 🔹 Bottom wall
+        CreateWall(bottomLeft, bottomRight, parent);
+
+        // 🔹 Top wall
+        CreateWall(topLeft, topRight, parent);
+
+        // 🔹 Left wall
+        CreateWall(bottomLeft, topLeft, parent);
+
+        // 🔹 Right wall
+        CreateWall(bottomRight, topRight, parent);
     }
 
-    Vector3 GridToWorld(Vector2 gridPos, float y)
+    void CreateWall(Vector3 start, Vector3 end, Transform parent)
     {
-        return new Vector3(
-            gridPos.x * cellSize * 5f,
-            y,
-            gridPos.y * cellSize * 5f
+        Vector3 direction = end - start;
+        float length = direction.magnitude;
+
+        Vector3 position = start + direction * 0.5f;
+
+        GameObject wall = Instantiate(wallPrefab, position, Quaternion.identity, parent);
+
+        // Rotación (alinear con dirección)
+        wall.transform.right = direction.normalized;
+
+        // Escala: largo en X (o Z según prefab)
+        wall.transform.localScale = new Vector3(length * 1.666666f, wallHeight, wallThickness);
+    }
+
+    Vector3 GridToWorld(Vector2Int gridPos)
+    {
+        Vector3 worldPos = new Vector3(
+            gridPos.x * cellSize * 7f,
+            roomHeight,
+            gridPos.y * cellSize * 7f
         );
+        return worldPos;
     }
 
     void SpawnPlayer(int roomIndex)
@@ -357,159 +378,16 @@ public class Test11 : MonoBehaviour
 
     void ScaleRoom(Transform roomTransform, Room room)
     {
-        roomTransform.localScale = GetFootprintScale(room.bounds.width, room.bounds.height);
-    }
-
-    void CreateWalls(Transform roomParent, Room room, int roomIndex)
-    {
-        if (wallPrefab == null)
-        {
-            UnityEngine.Debug.LogWarning("[Test11] No wall prefab assigned.");
-            return;
-        }
-
-        // Obtener el tamaño escalado de la sala
-        Vector3 roomScale = GetFootprintScale(room.bounds.width, room.bounds.height);
-        float roomWorldWidth = roomScale.x;
-        float roomWorldDepth = roomScale.z;
-
-        Vector3 roomCenter = roomParent.position;
-
-        // Crear 4 paredes (arriba, abajo, izquierda, derecha en vista superior)
-        // Pared frente (Z+)
-        CreateWall(roomParent, roomIndex, 
-            roomCenter + new Vector3(0, wallHeight / 2, roomWorldDepth / 2),
-            new Vector3(roomWorldWidth, wallHeight, wallThickness),
-            "front");
-
-        // Pared atrás (Z-)
-        CreateWall(roomParent, roomIndex, 
-            roomCenter + new Vector3(0, wallHeight / 2, -roomWorldDepth / 2),
-            new Vector3(roomWorldWidth, wallHeight, wallThickness),
-            "back");
-
-        // Pared derecha (X+)
-        CreateWall(roomParent, roomIndex, 
-            roomCenter + new Vector3(roomWorldWidth / 2, wallHeight / 2, 0),
-            new Vector3(wallThickness, wallHeight, roomWorldDepth),
-            "right");
-
-        // Pared izquierda (X-)
-        CreateWall(roomParent, roomIndex, 
-            roomCenter + new Vector3(-roomWorldWidth / 2, wallHeight / 2, 0),
-            new Vector3(wallThickness, wallHeight, roomWorldDepth),
-            "left");
-    }
-
-    void CreateWall(Transform roomParent, int roomIndex, Vector3 position, Vector3 scale, string wallName)
-    {
-        GameObject wall = Instantiate(wallPrefab, position, Quaternion.identity, roomParent);
-        wall.name = $"pared_{wallName}_{roomIndex}";
-        wall.transform.localScale = scale;
-    }
-
-    void SpawnFloorObjects(Transform roomParent, Room room, int roomIndex)
-    {
-        if (floorObjectsPrefabs == null || floorObjectsPrefabs.Length == 0)
-        {
-            return;
-        }
-
-        Vector3 roomScale = GetFootprintScale(room.bounds.width, room.bounds.height);
-        float roomWorldWidth = roomScale.x;
-        float roomWorldDepth = roomScale.z;
-        Vector3 roomCenter = roomParent.position;
-
-        // Generar objetos de suelo aleatoriamente dentro de la sala
-        int objectCount = Random.Range(1, Mathf.Max(2, Mathf.RoundToInt(room.bounds.width * room.bounds.height * 0.01f)));
-        
-        for (int i = 0; i < objectCount; i++)
-        {
-            if (Random.value < floorObjectsSpawnChance)
-            {
-                float randomX = Random.Range(-roomWorldWidth / 2 + 1f, roomWorldWidth / 2 - 1f);
-                float randomZ = Random.Range(-roomWorldDepth / 2 + 1f, roomWorldDepth / 2 - 1f);
-                Vector3 spawnPos = roomCenter + new Vector3(randomX, 0, randomZ);
-
-                GameObject floorObjPrefab = floorObjectsPrefabs[Random.Range(0, floorObjectsPrefabs.Length)];
-                GameObject floorObj = Instantiate(floorObjPrefab, spawnPos, Quaternion.Euler(0, Random.Range(0f, 360f), 0), roomParent);
-                floorObj.name = $"floorObj_{roomIndex}_{i}";
-            }
-        }
-    }
-
-    void SpawnWallObjects(Transform roomParent, Room room, int roomIndex)
-    {
-        if (wallObjectsPrefabs == null || wallObjectsPrefabs.Length == 0)
-        {
-            return;
-        }
-
-        Vector3 roomScale = GetFootprintScale(room.bounds.width, room.bounds.height);
-        float roomWorldWidth = roomScale.x;
-        float roomWorldDepth = roomScale.z;
-        Vector3 roomCenter = roomParent.position;
-
-        // Objetos en pared frente
-        SpawnObjectsOnWall(roomParent, roomIndex, 
-            roomCenter, roomWorldWidth, wallThickness, wallHeight, "front",
-            new Vector3(0, 0, roomWorldDepth / 2), Vector3.forward);
-
-        // Objetos en pared atrás
-        SpawnObjectsOnWall(roomParent, roomIndex, 
-            roomCenter, roomWorldWidth, wallThickness, wallHeight, "back",
-            new Vector3(0, 0, -roomWorldDepth / 2), Vector3.back);
-
-        // Objetos en pared derecha
-        SpawnObjectsOnWall(roomParent, roomIndex, 
-            roomCenter, roomWorldDepth, wallThickness, wallHeight, "right",
-            new Vector3(roomWorldWidth / 2, 0, 0), Vector3.right);
-
-        // Objetos en pared izquierda
-        SpawnObjectsOnWall(roomParent, roomIndex, 
-            roomCenter, roomWorldDepth, wallThickness, wallHeight, "left",
-            new Vector3(-roomWorldWidth / 2, 0, 0), Vector3.left);
-    }
-
-    void SpawnObjectsOnWall(Transform roomParent, int roomIndex, Vector3 roomCenter, 
-        float wallLength, float wallThickness, float wallHeight, string wallName, 
-        Vector3 wallOffset, Vector3 wallDirection)
-    {
-        int objectCount = Random.Range(1, Mathf.Max(2, Mathf.RoundToInt(wallLength * 0.05f)));
-
-        for (int i = 0; i < objectCount; i++)
-        {
-            if (Random.value < wallObjectsSpawnChance)
-            {
-                float randomPos = Random.Range(-wallLength / 2 + 0.5f, wallLength / 2 - 0.5f);
-                float randomHeight = Random.Range(0.5f, wallHeight - 0.5f);
-
-                Vector3 spawnPos;
-                if (wallName == "front" || wallName == "back")
-                {
-                    spawnPos = roomCenter + new Vector3(randomPos, randomHeight, wallOffset.z);
-                }
-                else // right or left
-                {
-                    spawnPos = roomCenter + new Vector3(wallOffset.x, randomHeight, randomPos);
-                }
-
-                GameObject wallObjPrefab = wallObjectsPrefabs[Random.Range(0, wallObjectsPrefabs.Length)];
-                Quaternion rotation = Quaternion.LookRotation(-wallDirection);
-                GameObject wallObj = Instantiate(wallObjPrefab, spawnPos, rotation, roomParent);
-                wallObj.name = $"wallObj_{wallName}_{roomIndex}_{i}";
-            }
-        }
-    }
-
-    Vector3 GetFootprintScale(float gridWidth, float gridHeight)
-    {
         Vector3 scale = new Vector3(
-            gridWidth * 1.7f / 10f * 5f,
+            room.bounds.width * 1.7f / 10f * 7f,
             1f,
-            gridHeight * 1.7f / 10f * 5f
+            room.bounds.height * 1.7f / 10f * 7f
         );
-
-        return scale;
+        roomTransform.localScale = scale;
     }
+
 }
+
+        
+
+    

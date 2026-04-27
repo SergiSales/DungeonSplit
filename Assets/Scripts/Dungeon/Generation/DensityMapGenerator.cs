@@ -30,7 +30,7 @@ public class DensityMapGenerator
         return densityMap;
     }
     
-    public void FilterRoomsByDensity(List<Room> rooms, float[,] densityMap, float densityThreshold)
+    public List<Room> FilterRoomsByDensity(List<Room> rooms, float[,] densityMap, float densityThreshold)
     {
         List<Room> filteredRooms = new List<Room>();
         
@@ -59,6 +59,6 @@ public class DensityMapGenerator
             }
         }
         
-        rooms = filteredRooms;
+        return filteredRooms;
     }
 }
