@@ -10,12 +10,13 @@ public class AutoTile : MonoBehaviour
         Vector3 scale = transform.localScale;
         if(this.gameObject.name.Contains("Wall"))
         {
-            rend.material.mainTextureScale = new Vector2(40, 1);
+            if(scale.z>scale.x) rend.material.mainTextureScale = new Vector2(scale.z / 8, scale.y / 4);
+            else rend.material.mainTextureScale = new Vector2(scale.x / 8, scale.y / 4);
         }
         else
         {
             
-            rend.material.mainTextureScale = new Vector2(scale.x, scale.z);
+            rend.material.mainTextureScale = new Vector2(scale.x / 4, scale.z / 4);
         }
         
     }

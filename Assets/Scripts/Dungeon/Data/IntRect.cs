@@ -10,8 +10,8 @@ public struct IntRect
         this.height = height;
     }
 
-    public int xMax => x + width;
+    public int xMax => x + width - 1 ;
     public int xMin => x;
-    public int yMax => y + height;
+    public int yMax => y + height - 1;
     public int yMin => y;
 }

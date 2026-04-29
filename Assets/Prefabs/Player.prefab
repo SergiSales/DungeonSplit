@@ -248,7 +248,7 @@ GameObject:
   - component: {fileID: 3132500232824537250}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -388,14 +388,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0c991f3fa053784ebc75d621f05d0ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonController
-  speed: 3
-  mouseSensitivity: 50
   cameraPivot: {fileID: 0}
   cameraDistance: 5
   lookDownExtraDistance: 0.75
   minCameraHeight: 0.3
   maxCameraHeight: 3
   cameraCollisionRadius: 0.3
+  speed: 3
+  walkSpeed: 7
+  runSpeed: 11
+  jumpForce: 5
+  mouseSensitivity: 50
+  rb: {fileID: 0}
   collisionLayers:
     serializedVersion: 2
     m_Bits: 0

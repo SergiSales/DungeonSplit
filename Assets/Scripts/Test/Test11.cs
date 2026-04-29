@@ -29,35 +29,27 @@ public class Test11 : MonoBehaviour
     [Range(0f, 1f)] public float deadEndKeepChance = 0.85f;
     [Range(0f, 1f)] public float deadEndConnectChance = 0.15f;
 
-    [Header("Gizmo/Map Settings")]
-
-    public bool showBSPNodes = true;
-    public bool showDensityMap = false;
-    public bool showRooms = true;
-    public bool showDelaunay = true;
-    public bool showMST = true;
 
     [Header("Room Spawning")]
     public GameObject floorPrefab;
-    public float cellSize = 10f;
-    public float roomHeight = 0f;
+    public float cellSize = 5f;
     public Transform roomsParent;
+    public float roomSpacingMultiplier = 0.5f;
 
     [Header("Wall Spawning")]
     public GameObject wallPrefab;
-    public float wallHeight = 3f;
+    public float wallHeight = 10f;
     public float wallThickness = 0.15f;
     [Header("Floor Objects")]
     public GameObject[] floorObjectsPrefabs;
     [Range(0f, 1f)] public float floorObjectsSpawnChance = 0.3f;
 
-    [Header("Wall Objects")]
-    public GameObject[] wallObjectsPrefabs;
-    [Range(0f, 1f)] public float wallObjectsSpawnChance = 0.2f;
-
     [Header("Player Spawn")]
     public GameObject playerPrefab;
     public float playerSpawnHeight = 1f;
+
+    [Header("Portals")]
+    public GameObject portalPrefab;
 
     [Header("Debug Stats")]
     public int generatedRoomCount;
@@ -75,28 +67,32 @@ public class Test11 : MonoBehaviour
     private bool bossRoomAssigned = false;
     private bool playerSpawned = false;
 
-    // Generators
+    // Script references
     private DensityMapGenerator densityGenerator;
     private DelaunayGenerator delaunayGenerator;
     private MSTGenerator mstGenerator;
-    private DungeonVisualization visualization;
+    private AssetsSpawner assetsSpawner;
+    UIMinimap uiMinimap;
+    ThirdPersonController player;
     #endregion
+
+    
     void Start()
     {
         Stopwatch totalTimer = Stopwatch.StartNew();
         seed = Random.Range(0, 100000);
+        
         InitializeGenerators();
-
-        // Generacion BSP
-        BSPGenerator bspGenerator = new BSPGenerator(minRoomSize, maxRoomSize, seed);
-        root = bspGenerator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
-        rooms = bspGenerator.CreateRooms(root);
-
         // Generacion del mapa de densidad
         if (usePerlinNoise)
         {
             densityMap = densityGenerator.GeneratePerlinNoise(perlinScale);
         }
+
+        // Generacion BSP
+        BSPGenerator bspGenerator = new BSPGenerator(minRoomSize, maxRoomSize, seed);
+        root = bspGenerator.Generate(new IntRect(0, 0, dungeonWidth, dungeonHeight));
+        rooms = bspGenerator.CreateRooms(root);
 
         // Filtrado por densidad
         if (usePerlinNoise && densityMap != null)
@@ -104,6 +100,8 @@ public class Test11 : MonoBehaviour
             rooms = densityGenerator.FilterRoomsByDensity(rooms, densityMap, densityThreshold);
         }
 
+        
+        
         generatedRoomCount = rooms.Count;
 
         if (rooms.Count > 1)
@@ -145,10 +143,21 @@ public class Test11 : MonoBehaviour
 
         }
 
-        SpawnRooms();
+        uiMinimap = FindAnyObjectByType<UIMinimap>();
+
         AssignRoomTypes();
+        assetsSpawner.SpawnRooms(floorPrefab, rooms, wallPrefab, cellSize, wallThickness, roomSpacingMultiplier, portalPrefab, mstEdges, uiMinimap);
 
 
+        
+        
+        player = FindAnyObjectByType<ThirdPersonController>();
+        uiMinimap.playerTransform = player.transform;
+            
+        // Llamamos a la función actualizada con los parámetros extra
+        uiMinimap.GenerateAbstractMap(rooms, cellSize, roomSpacingMultiplier);
+        
+        
         
 
         totalTimer.Stop();
@@ -156,128 +165,22 @@ public class Test11 : MonoBehaviour
         UnityEngine.Debug.Log($"[Test11] Total generation time: {totalTimer.ElapsedMilliseconds}ms");
     }
 
-    void OnDrawGizmos()
-    {
-        if (root == null || visualization == null)
-        {
-            return;
-        }
-
-        if (showBSPNodes)
-        {
-            visualization.DrawNodeGizmos(root);
-        }
-
-        if (showRooms)
-        {
-            visualization.DrawRoomsGizmos(rooms);
-        }
-
-        if (showDensityMap && densityMap != null)
-        {
-            visualization.DrawDensityMapGizmos(densityMap, dungeonWidth, dungeonHeight, densityThreshold);
-        }
-
-        if (delaunayTriangles != null && showDelaunay)
-        {
-            visualization.DrawDelaunayGizmos(delaunayTriangles);
-        }
-
-        if (mstEdges != null && showMST)
-        {
-            visualization.DrawMSTGizmos(mstEdges);
-        }
-    }
-
     private void InitializeGenerators()
     {
         densityGenerator = new DensityMapGenerator(dungeonWidth, dungeonHeight, seed);
         delaunayGenerator = new DelaunayGenerator();
         mstGenerator = new MSTGenerator();
-        visualization = new DungeonVisualization();
+        assetsSpawner = new AssetsSpawner();
     }
 
-void SpawnRooms()
-    {
-        if (floorPrefab == null)
-        {
-            UnityEngine.Debug.LogWarning("[Test11] No room prefab assigned.");
-            UnityEngine.Debug.Log("[Test11] No room prefab assigned.");
-            return;
-        }
-
-        Transform parent = roomsParent != null ? roomsParent : transform;
-
-
-        foreach (Room room in rooms)
-        {
-            SpawnFloor(room, parent);
-            SpawnWalls(room, parent);
-        }
-        return;
-    }
-
-    string SpawnFloor(Room room, Transform parent)
-    {
-        Vector3 worldPos = GridToWorld(room.center);
-        GameObject instance = Instantiate(floorPrefab, worldPos, Quaternion.identity, parent);
-        ScaleRoom(instance.transform, room);
-
-        return instance.name;
-    }
-
-    void SpawnWalls(Room room, Transform parent)
-    {
-        if (wallPrefab == null) return;
-
-        Vector3 bottomLeft = GridToWorld(room.bottomLeft);
-        Vector3 bottomRight = GridToWorld(room.bottomRight);
-        Vector3 topLeft = GridToWorld(room.topLeft);
-        Vector3 topRight = GridToWorld(room.topRight);
-
-        // 🔹 Bottom wall
-        CreateWall(bottomLeft, bottomRight, parent);
-
-        // 🔹 Top wall
-        CreateWall(topLeft, topRight, parent);
-
-        // 🔹 Left wall
-        CreateWall(bottomLeft, topLeft, parent);
-
-        // 🔹 Right wall
-        CreateWall(bottomRight, topRight, parent);
-    }
-
-    void CreateWall(Vector3 start, Vector3 end, Transform parent)
-    {
-        Vector3 direction = end - start;
-        float length = direction.magnitude;
-
-        Vector3 position = start + direction * 0.5f;
-
-        GameObject wall = Instantiate(wallPrefab, position, Quaternion.identity, parent);
-
-        // Rotación (alinear con dirección)
-        wall.transform.right = direction.normalized;
-
-        // Escala: largo en X (o Z según prefab)
-        wall.transform.localScale = new Vector3(length * 1.666666f, wallHeight, wallThickness);
-    }
-
-    Vector3 GridToWorld(Vector2Int gridPos)
-    {
-        Vector3 worldPos = new Vector3(
-            gridPos.x * cellSize * 7f,
-            roomHeight,
-            gridPos.y * cellSize * 7f
-        );
-        return worldPos;
-    }
 
     void SpawnPlayer(int roomIndex)
     {
         Room spawnRoom = rooms[roomIndex];
-        Vector3 spawnPosition = GridToWorld(spawnRoom.center) + Vector3.up * playerSpawnHeight;
+        Vector3 spawnPosition = assetsSpawner.GridToWorld(spawnRoom.center, cellSize, roomSpacingMultiplier);
+        spawnPosition.y = playerSpawnHeight;
+        
+        spawnRoom.visited = true; // Marcar la sala de spawn como visitada para el minimapa
 
         ThirdPersonController player = FindAnyObjectByType<ThirdPersonController>();
         if (player == null)
@@ -307,7 +210,7 @@ void SpawnRooms()
             playerRigidbody.angularVelocity = Vector3.zero;
         }
 
-        DisableOtherCameras(player.transform);
+
     }
 
     void AssignRoomTypes()
@@ -366,26 +269,8 @@ void SpawnRooms()
         }
         
     }
-    void DisableOtherCameras(Transform playerRoot)
-    {
-        Camera[] cameras = FindObjectsByType<Camera>();
-        foreach (Camera camera in cameras)
-        {
-            bool belongsToPlayer = camera.transform.IsChildOf(playerRoot);
-            camera.gameObject.SetActive(belongsToPlayer);
-        }
-    }
 
-    void ScaleRoom(Transform roomTransform, Room room)
-    {
-        Vector3 scale = new Vector3(
-            room.bounds.width * 1.7f / 10f * 7f,
-            1f,
-            room.bounds.height * 1.7f / 10f * 7f
-        );
-        roomTransform.localScale = scale;
-    }
-
+    
 }
 
         
