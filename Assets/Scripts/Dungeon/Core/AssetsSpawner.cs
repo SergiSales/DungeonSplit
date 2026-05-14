@@ -7,11 +7,10 @@ public class AssetsSpawner : MonoBehaviour
     Transform p;
     int wallHeight = 10;
 
-    public void SpawnRooms(GameObject floorPrefab, List<Room> rooms, GameObject wallPrefab, 
-                            float cellSize, float wallThickness, float roomSpacingMultiplier, 
-                            GameObject portalPrefab, List<MSTEdge> mstEdges, UIMinimap uiMinimap)
+    public void SpawnRooms(GameObject[] objectsPrefab, List<Room> rooms, 
+                            float cellSize, float wallThickness, float roomSpacingMultiplier, List<MSTEdge> mstEdges, UIMinimap uiMinimap)
     {
-        if (floorPrefab == null) return;
+        if (objectsPrefab[0] == null) return;
         
         if(roomsParent == null) roomsParent = new GameObject("Rooms").transform;
 
@@ -33,15 +32,23 @@ public class AssetsSpawner : MonoBehaviour
             p = new GameObject("Room_" + room.id).transform;
             p.SetParent(roomsParent);
             
-            SpawnFloor(room, p, floorPrefab, cellSize, roomSpacingMultiplier);
-            SpawnWalls(room, p, wallPrefab, cellSize, wallThickness, roomSpacingMultiplier);
+            SpawnFloor(room, p, objectsPrefab[0], cellSize, roomSpacingMultiplier);
+            SpawnWalls(room, p, objectsPrefab[1], cellSize, wallThickness, roomSpacingMultiplier);
             
-
+            if (room.type == roomTypes.Treasure)
+            {
+                // Solo spawneamos el objeto de tesoro en las habitaciones de tesoro
+                Vector3 treasurePos = GridToWorld(room.center, cellSize, roomSpacingMultiplier);
+                treasurePos.y = 0.5f; // Ajustamos la altura del objeto
+                Instantiate(objectsPrefab[3], treasurePos, Quaternion.identity, p);
+                
+            }
             if (roomConnections.ContainsKey(room.center))
             {
                 // Le pasamos SOLO los destinos que le corresponden a ESTA habitación
-                SpawnPortals(portalPrefab, room, roomConnections[room.center], rooms, cellSize, roomSpacingMultiplier, uiMinimap, p);
+                SpawnPortals(objectsPrefab[2], room, roomConnections[room.center], rooms, cellSize, roomSpacingMultiplier, uiMinimap, p);
             }
+            
         }
     }
 

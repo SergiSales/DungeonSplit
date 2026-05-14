@@ -37,13 +37,42 @@ public class Skeleton : EnemyBase
     }
     public override void ChasePlayer(Transform player)
     {
-        Vector3 dir = (player.position - transform.position).normalized;
-        transform.position += dir * moveSpeed * Time.deltaTime;
-        transform.position = Vector3.MoveTowards(transform.position, player.position, moveSpeed * Time.deltaTime);
-        
-        Vector3 lookDirection = player.position - transform.position;
-        Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-        
+        Vector3 toPlayer = player.position - transform.position;
+        toPlayer.y = 0f; // Mantener solo la dirección horizontal
+
+        Vector3 separation = Vector3.zero;
+
+        int count = Physics.OverlapSphereNonAlloc(
+            transform.position,
+            separationRadius,
+            buffer
+        );
+
+        for (int i = 0; i < count; i++)
+        {
+            Collider c = buffer[i];
+
+            if (c.gameObject == gameObject) continue;
+
+            Vector3 diff = transform.position - c.transform.position;
+            diff.y = 0f; // Mantener solo la separación horizontal
+
+            float dist = diff.magnitude;
+            if (dist > 0.001f)
+            {
+                separation += diff / dist;
+            }
+        }
+
+        Vector3 finalDir = (toPlayer + separation * separationForce).normalized;
+
+        transform.position += finalDir * moveSpeed * Time.deltaTime;
+
+        Quaternion targetRotation = Quaternion.LookRotation(toPlayer);
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            targetRotation,
+            rotationSpeed * Time.deltaTime
+        );
     }
 }

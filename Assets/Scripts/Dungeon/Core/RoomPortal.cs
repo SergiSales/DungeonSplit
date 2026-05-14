@@ -7,19 +7,19 @@ public class RoomPortal : MonoBehaviour
     public Vector3 destinationPosition;
     public Room destinationRoom; // Nueva referencia a la sala lógica
     public UIMinimap uiMinimap;  // Nueva referencia al minimapa
-    public Test11 test11;
+    public Test12 test12;
     public float teleportCooldown = 0.5f;
     
 
     void Start()
     {
-        test11 = FindAnyObjectByType<Test11>();
+        test12 = FindAnyObjectByType<Test12>();
     }
 
     private void OnTriggerEnter(Collider other)
     {
         // Asegúrate de que tu prefab del jugador tenga la etiqueta (Tag) "Player"
-        if (other.CompareTag("Player") && test11.enableTeleport)
+        if (other.CompareTag("Player") && test12.enableTeleport)
         {
             TeleportPlayer(other.gameObject);
         }
@@ -45,12 +45,12 @@ public class RoomPortal : MonoBehaviour
             uiMinimap.RevealRoom(destinationRoom);
         }
 
-        if (destinationRoom != null && test11 != null)
+        if (destinationRoom != null && test12 != null)
         {
-            test11.HandlePlayerTeleported(player.transform, destinationRoom);
+            test12.HandlePlayerTeleported(player.transform, destinationRoom);
         }
 
-        test11.enableTeleport = false;
+        test12.enableTeleport = false;
         StartCoroutine(ReenableTeleportAfterDelay());
 
     }
@@ -59,9 +59,9 @@ public class RoomPortal : MonoBehaviour
     {
         yield return new WaitForSeconds(teleportCooldown);
 
-        if (test11 != null)
+        if (test12 != null)
         {
-            test11.enableTeleport = true;
+            test12.enableTeleport = true;
         }
     }
 }

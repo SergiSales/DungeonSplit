@@ -11,6 +11,9 @@ public class EnemyBase : MonoBehaviour
     public float moveSpeed = 3f;
     public float acceleration = 10f;
     public float rotationSpeed = 5f;
+    public float separationRadius = 0.5f;
+    public float separationForce = 2f;
+    protected static Collider[] buffer = new Collider[20];
 
     [Header("Combat")]
     public bool ranged = false;

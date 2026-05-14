@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 
-public class Test11 : MonoBehaviour
+public class Test12 : MonoBehaviour
 {
     #region Inspector Variables
     [Header("Dungeon Settings")]
@@ -40,17 +40,15 @@ public class Test11 : MonoBehaviour
     public float wallThickness = 0.15f;
     public bool enableTeleport;
 
-    [Header("Floor Objects")]
-    public GameObject[] floorObjectsPrefabs;
-    [Range(0f, 1f)] public float floorObjectsSpawnChance = 0.3f;
-
     [Header("Player Spawn")]
     public GameObject playerPrefab;
     public float playerSpawnHeight = 1f;
 
+
+
     [Header("Wave Rooms")]
     public GameObject enemyFather;
-    public GameObject waveEnemyPrefab;
+    public GameObject[] waveEnemyPrefab;
     [Min(1)] public int maxEnemiesPerWaveRoom = 200;
     [Min(0f)] public float waveStartDelay = 5f;
     [Min(0.05f)] public float waveSpawnInterval = 0.35f;
@@ -318,13 +316,13 @@ public class Test11 : MonoBehaviour
             Vector3 spawnPosition;
             if (TryGetSpawnPositionInRoom(room, playerTransform.position, out spawnPosition))
             {
-                GameObject enemy = Instantiate(waveEnemyPrefab, spawnPosition, Quaternion.identity);
+                GameObject enemy = Instantiate(waveEnemyPrefab[0], spawnPosition, Quaternion.identity);
                 
                 enemy.transform.SetParent(enemyFather.transform);
                 spawnedEnemies++;
             }
 
-            yield return new WaitForSeconds(waveSpawnInterval);
+            yield return new WaitForSeconds(0.3f);
         }
 
         room.cleared = true;
