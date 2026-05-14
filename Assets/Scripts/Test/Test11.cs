@@ -312,14 +312,20 @@ public class Test11 : MonoBehaviour
         }
 
         int spawnedEnemies = 0;
+        
+        if (enemyFather == null)
+        {
+            enemyFather = new GameObject("Enemy Father");
+            UnityEngine.Debug.Log("enemyFather created");
+        }
         while (spawnedEnemies < maxEnemiesPerWaveRoom)
         {
             Vector3 spawnPosition;
             if (TryGetSpawnPositionInRoom(room, playerTransform.position, out spawnPosition))
             {
                 GameObject enemy = Instantiate(waveEnemyPrefab, spawnPosition, Quaternion.identity);
-
-                enemyFather.transform.SetParent(enemy.transform);
+                
+                enemy.transform.SetParent(enemyFather.transform);
                 spawnedEnemies++;
             }
 

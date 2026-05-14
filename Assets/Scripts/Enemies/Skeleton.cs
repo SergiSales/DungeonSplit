@@ -39,7 +39,11 @@ public class Skeleton : EnemyBase
     {
         Vector3 dir = (player.position - transform.position).normalized;
         transform.position += dir * moveSpeed * Time.deltaTime;
-
         transform.position = Vector3.MoveTowards(transform.position, player.position, moveSpeed * Time.deltaTime);
+        
+        Vector3 lookDirection = player.position - transform.position;
+        Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+        
     }
 }
