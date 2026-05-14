@@ -14,6 +14,7 @@ public class Room
     public Vector2Int center; // Centro de la sala
     public roomTypes type;
     public bool cleared = false; // Para saber si se ha hecho el evento de la sala (derrotar enemigos, recoger tesoro, etc)
+    public bool waveStarted = false; // Evita arrancar varias veces la misma oleada
     
     public Room(IntRect bounds)
     {

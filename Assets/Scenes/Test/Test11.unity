@@ -206,6 +206,15 @@ MonoBehaviour:
   playerPrefab: {fileID: 8805717297518738770, guid: f0f8bb73672a17541b020884b8c83882, type: 3}
   playerSpawnHeight: 1
   portalPrefab: {fileID: 1204845917652040484, guid: 23e34fd33c4e8504995d282ab5ae7caa, type: 3}
+  enableTeleport: 0
+  waveEnemyPrefab: {fileID: 6469359493553425699, guid: 477a3bcdc4cffde4db81c51b785fae83, type: 3}
+  maxEnemiesPerWaveRoom: 100
+  waveStartDelay: 2
+  waveSpawnInterval: 0.35
+  minSpawnDistanceFromPlayer: 8
+  maxSpawnDistanceFromPlayer: 16
+  enemySpawnHeight: 1
+  spawnPositionAttempts: 20
   generatedRoomCount: 0
 --- !u!1 &804448203
 GameObject:

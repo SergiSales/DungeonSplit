@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
@@ -50,6 +51,18 @@ public class Test11 : MonoBehaviour
 
     [Header("Portals")]
     public GameObject portalPrefab;
+    public bool enableTeleport;
+
+    [Header("Wave Rooms")]
+    public GameObject enemyFather;
+    public GameObject waveEnemyPrefab;
+    [Min(1)] public int maxEnemiesPerWaveRoom = 200;
+    [Min(0f)] public float waveStartDelay = 5f;
+    [Min(0.05f)] public float waveSpawnInterval = 0.35f;
+    [Min(0f)] public float minSpawnDistanceFromPlayer = 12f;
+    [Min(0f)] public float maxSpawnDistanceFromPlayer = 30f;
+    public float enemySpawnHeight = 1f;
+    [Min(1)] public int spawnPositionAttempts = 20;
 
     [Header("Debug Stats")]
     public int generatedRoomCount;
@@ -81,6 +94,7 @@ public class Test11 : MonoBehaviour
     {
         Stopwatch totalTimer = Stopwatch.StartNew();
         seed = Random.Range(0, 100000);
+        enableTeleport = true;
         
         InitializeGenerators();
         // Generacion del mapa de densidad
@@ -270,7 +284,90 @@ public class Test11 : MonoBehaviour
         
     }
 
-    
+    public void HandlePlayerTeleported(Transform playerTransform, Room room)
+    {
+        UnityEngine.Debug.Log($"[Test11] Room Type: {room.type}");
+        if (playerTransform == null || room == null)
+        {
+            return;
+        }
+
+        if (room.type != roomTypes.Wave || room.waveStarted || room.cleared)
+        {
+            return;
+        }
+
+        room.waveStarted = true;
+        StartCoroutine(StartWaveAfterDelay(room, playerTransform));
+    }
+
+    private IEnumerator StartWaveAfterDelay(Room room, Transform playerTransform)
+    {
+        yield return new WaitForSeconds(waveStartDelay);
+
+        if (waveEnemyPrefab == null)
+        {
+            UnityEngine.Debug.LogWarning("[Test11] No wave enemy prefab assigned. Wave room cannot spawn enemies.");
+            yield break;
+        }
+
+        int spawnedEnemies = 0;
+        while (spawnedEnemies < maxEnemiesPerWaveRoom)
+        {
+            Vector3 spawnPosition;
+            if (TryGetSpawnPositionInRoom(room, playerTransform.position, out spawnPosition))
+            {
+                GameObject enemy = Instantiate(waveEnemyPrefab, spawnPosition, Quaternion.identity);
+
+                enemyFather.transform.SetParent(enemy.transform);
+                spawnedEnemies++;
+            }
+
+            yield return new WaitForSeconds(waveSpawnInterval);
+        }
+
+        room.cleared = true;
+    }
+
+    private bool TryGetSpawnPositionInRoom(Room room, Vector3 playerPosition, out Vector3 spawnPosition)
+    {
+        float roomMinX = room.bounds.x * cellSize * roomSpacingMultiplier;
+        float roomMaxX = (room.bounds.x + room.bounds.width) * cellSize * roomSpacingMultiplier;
+        float roomMinZ = room.bounds.y * cellSize * roomSpacingMultiplier;
+        float roomMaxZ = (room.bounds.y + room.bounds.height) * cellSize * roomSpacingMultiplier;
+
+        float clampedMaxDistance = Mathf.Max(minSpawnDistanceFromPlayer, maxSpawnDistanceFromPlayer);
+
+        for (int attempt = 0; attempt < spawnPositionAttempts; attempt++)
+        {
+            Vector2 randomDirection = Random.insideUnitCircle.normalized;
+            if (randomDirection == Vector2.zero)
+            {
+                randomDirection = Vector2.right;
+            }
+
+            float randomDistance = Random.Range(minSpawnDistanceFromPlayer, clampedMaxDistance);
+            Vector3 candidate = playerPosition + new Vector3(randomDirection.x, 0f, randomDirection.y) * randomDistance;
+
+            candidate.x = Mathf.Clamp(candidate.x, roomMinX + 1f, roomMaxX - 1f);
+            candidate.z = Mathf.Clamp(candidate.z, roomMinZ + 1f, roomMaxZ - 1f);
+            candidate.y = enemySpawnHeight;
+
+            float distanceToPlayer = Vector3.Distance(
+                new Vector3(candidate.x, 0f, candidate.z),
+                new Vector3(playerPosition.x, 0f, playerPosition.z));
+
+            if (distanceToPlayer >= minSpawnDistanceFromPlayer)
+            {
+                spawnPosition = candidate;
+                return true;
+            }
+        }
+
+        spawnPosition = assetsSpawner.GridToWorld(room.center, cellSize, roomSpacingMultiplier);
+        spawnPosition.y = enemySpawnHeight;
+        return true;
+    }
 }
 
         

@@ -125,19 +125,46 @@ public class AssetsSpawner : MonoBehaviour
                 Vector3 centerCurrent = GridToWorld(currentRoom.center, cellSize, roomSpacingMultiplier);
                 Vector3 centerDestination = GridToWorld(destinationRoom.center, cellSize, roomSpacingMultiplier);
 
-                // Dirección para que mire hacia la otra sala
-                Vector3 dirToDestination = (centerDestination - centerCurrent).normalized;
+                Vector3 dir = (centerDestination - centerCurrent).normalized;
 
-                // Movemos el portal hacia el borde lógico desde el centro
-                Vector3 portalPos = centerCurrent + (dirToDestination * cellSize * 0.5f);
+                float roomWidth = currentRoom.bounds.width * cellSize;
+                float roomHeight = currentRoom.bounds.height * cellSize;
+
+                Vector3 portalPos = centerCurrent;
+
+                // Detectamos si la conexión es horizontal o vertical
+                if (Mathf.Abs(dir.x) > Mathf.Abs(dir.z))
+                {
+                    // IZQUIERDA / DERECHA
+
+                    float offsetX = (roomWidth / 2f) - 0.5f; // Menos 1 para que esté dentro
+
+                    if (dir.x > 0)
+                        portalPos += new Vector3(offsetX, 0, 0); // derecha
+                    else
+                        portalPos += new Vector3(-offsetX, 0, 0); // izquierda
+                }
+                else
+                {
+                    // ARRIBA / ABAJO
+
+                    float offsetZ = (roomHeight / 2f) - 0.5f; // Menos 1 para que esté dentro
+
+                    if (dir.z > 0)
+                        portalPos += new Vector3(0, 0, offsetZ); // arriba
+                    else
+                        portalPos += new Vector3(0, 0, -offsetZ); // abajo
+                }
+
                 portalPos.y = 1f;
 
                 // Instanciamos el portal como HIJO de la habitación actual
-                GameObject portal = Instantiate(portalPrefab, portalPos, Quaternion.LookRotation(dirToDestination), portalParent);
+                // La dirección apunta desde el portal hacia el centro de la sala destino
+                GameObject portal = Instantiate(portalPrefab, portalPos, Quaternion.LookRotation(centerDestination - portalPos), portalParent);
 
                 // Configuramos su script
                 RoomPortal script = portal.AddComponent<RoomPortal>();
-                script.destinationPosition = centerDestination;
+                script.destinationPosition = new Vector3(destinationRoom.center.x * cellSize * roomSpacingMultiplier, 1f, destinationRoom.center.y * cellSize * roomSpacingMultiplier);
                 script.destinationRoom = destinationRoom;
                 script.uiMinimap = uiMinimap;
             }
