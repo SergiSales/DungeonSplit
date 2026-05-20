@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 
-public class Test12 : MonoBehaviour
+public class Test11 : TestBase
 {
+    private const float MinimumRoomEdgePadding = 0.75f;
+    private const float RoomEdgePaddingFactor = 0.35f;
+    private const float MinimumSpawnableHalfExtent = 0.25f;
+
     #region Inspector Variables
     [Header("Dungeon Settings")]
     public int dungeonWidth = 100;
@@ -38,17 +42,18 @@ public class Test12 : MonoBehaviour
     public float roomSpacingMultiplier = 5f;
     public float wallHeight = 10f;
     public float wallThickness = 0.15f;
-    public bool enableTeleport;
+
+    [Header("Floor Objects")]
+    public GameObject[] floorObjectsPrefabs;
+    [Range(0f, 1f)] public float floorObjectsSpawnChance = 0.3f;
 
     [Header("Player Spawn")]
     public GameObject playerPrefab;
     public float playerSpawnHeight = 1f;
 
-
-
     [Header("Wave Rooms")]
     public GameObject enemyFather;
-    public GameObject[] waveEnemyPrefab;
+    public GameObject waveEnemyPrefab;
     [Min(1)] public int maxEnemiesPerWaveRoom = 200;
     [Min(0f)] public float waveStartDelay = 5f;
     [Min(0.05f)] public float waveSpawnInterval = 0.35f;
@@ -277,7 +282,7 @@ public class Test12 : MonoBehaviour
         
     }
 
-    public void HandlePlayerTeleported(Transform playerTransform, Room room)
+    public override void HandlePlayerTeleported(Transform playerTransform, Room room)
     {
         UnityEngine.Debug.Log($"[Test11] Room Type: {room.type}");
         if (playerTransform == null || room == null)
@@ -316,13 +321,13 @@ public class Test12 : MonoBehaviour
             Vector3 spawnPosition;
             if (TryGetSpawnPositionInRoom(room, playerTransform.position, out spawnPosition))
             {
-                GameObject enemy = Instantiate(waveEnemyPrefab[0], spawnPosition, Quaternion.identity);
+                GameObject enemy = Instantiate(waveEnemyPrefab, spawnPosition, Quaternion.identity);
                 
                 enemy.transform.SetParent(enemyFather.transform);
                 spawnedEnemies++;
             }
 
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(waveSpawnInterval);
         }
 
         room.cleared = true;
@@ -330,10 +335,16 @@ public class Test12 : MonoBehaviour
 
     private bool TryGetSpawnPositionInRoom(Room room, Vector3 playerPosition, out Vector3 spawnPosition)
     {
-        float roomMinX = room.bounds.x * cellSize * roomSpacingMultiplier;
-        float roomMaxX = (room.bounds.x + room.bounds.width) * cellSize * roomSpacingMultiplier;
-        float roomMinZ = room.bounds.y * cellSize * roomSpacingMultiplier;
-        float roomMaxZ = (room.bounds.y + room.bounds.height) * cellSize * roomSpacingMultiplier;
+        Vector3 roomCenter = assetsSpawner.GridToWorld(room.center, cellSize, roomSpacingMultiplier);
+        float halfRoomWidth = (room.bounds.width * cellSize) / 2f;
+        float halfRoomHeight = (room.bounds.height * cellSize) / 2f;
+        float edgePadding = Mathf.Max(MinimumRoomEdgePadding, cellSize * RoomEdgePaddingFactor);
+        float usableHalfWidth = Mathf.Max(MinimumSpawnableHalfExtent, halfRoomWidth - edgePadding);
+        float usableHalfHeight = Mathf.Max(MinimumSpawnableHalfExtent, halfRoomHeight - edgePadding);
+        float roomMinX = roomCenter.x - usableHalfWidth;
+        float roomMaxX = roomCenter.x + usableHalfWidth;
+        float roomMinZ = roomCenter.z - usableHalfHeight;
+        float roomMaxZ = roomCenter.z + usableHalfHeight;
 
         float clampedMaxDistance = Mathf.Max(minSpawnDistanceFromPlayer, maxSpawnDistanceFromPlayer);
 
@@ -348,8 +359,8 @@ public class Test12 : MonoBehaviour
             float randomDistance = Random.Range(minSpawnDistanceFromPlayer, clampedMaxDistance);
             Vector3 candidate = playerPosition + new Vector3(randomDirection.x, 0f, randomDirection.y) * randomDistance;
 
-            candidate.x = Mathf.Clamp(candidate.x, roomMinX + 1f, roomMaxX - 1f);
-            candidate.z = Mathf.Clamp(candidate.z, roomMinZ + 1f, roomMaxZ - 1f);
+            candidate.x = Mathf.Clamp(candidate.x, roomMinX, roomMaxX);
+            candidate.z = Mathf.Clamp(candidate.z, roomMinZ, roomMaxZ);
             candidate.y = enemySpawnHeight;
 
             float distanceToPlayer = Vector3.Distance(
@@ -363,7 +374,7 @@ public class Test12 : MonoBehaviour
             }
         }
 
-        spawnPosition = assetsSpawner.GridToWorld(room.center, cellSize, roomSpacingMultiplier);
+        spawnPosition = roomCenter;
         spawnPosition.y = enemySpawnHeight;
         return true;
     }

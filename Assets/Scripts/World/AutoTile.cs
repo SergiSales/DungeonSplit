@@ -16,7 +16,7 @@ public class AutoTile : MonoBehaviour
         else
         {
             
-            rend.material.mainTextureScale = new Vector2(scale.x / 4, scale.z / 4);
+            rend.material.mainTextureScale = new Vector2(scale.x / 2, scale.z / 2);
         }
         
     }

@@ -118,6 +118,6 @@ public class UIMinimap : MonoBehaviour
 
         // 5. Aplicamos la posición y la rotación al icono generado
         playerIconInstance.anchoredPosition = new Vector2(uiX, uiY);
-        playerIconInstance.localRotation = Quaternion.Euler(0, 0, -playerTransform.eulerAngles.y);
+        playerIconInstance.localRotation = Quaternion.Euler(0, 0, playerTransform.eulerAngles.y);
     }
 }

@@ -56,6 +56,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: f3392e95529ae7540ad53657e3d0ce7d, type: 3}
+      propertyPath: m_TagString
+      value: Enemy
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -63,6 +67,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f3392e95529ae7540ad53657e3d0ce7d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3568690780008231645}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f3392e95529ae7540ad53657e3d0ce7d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1892298241166540923}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f3392e95529ae7540ad53657e3d0ce7d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3392771828614487876}
   m_SourcePrefab: {fileID: 100100000, guid: f3392e95529ae7540ad53657e3d0ce7d, type: 3}
 --- !u!1 &6469359493553425699 stripped
 GameObject:
@@ -87,14 +97,63 @@ MonoBehaviour:
   moveSpeed: 3
   acceleration: 10
   rotationSpeed: 5
+  separationRadius: 10
+  separationForce: 10
+  velocity: {x: 0, y: 0, z: 0}
   ranged: 0
   attackRange: 3
   attackCooldown: 2
   projectileSpeed: 5
-  detectionRange: 15
-  loseTargetRange: 20
   xpReward: 10
   goldReward: 5
   dropChance: 0.5
   dead: 0
   playerTarget: {fileID: 0}
+--- !u!65 &1892298241166540923
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6469359493553425699}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.20048994, y: 1.4591644, z: 0.13804087}
+  m_Center: {x: 0.0050322115, y: 0.7304845, z: -0.016222402}
+--- !u!54 &3392771828614487876
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6469359493553425699}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 84
+  m_CollisionDetection: 0

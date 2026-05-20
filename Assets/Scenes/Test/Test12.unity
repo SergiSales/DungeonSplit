@@ -163,6 +163,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78fd8114b25fd2a44984a889e3ce7061, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Test12
+  enableTeleport: 1
   dungeonWidth: 100
   dungeonHeight: 100
   minRoomSize: 14
@@ -188,15 +189,14 @@ MonoBehaviour:
   roomSpacingMultiplier: 5
   wallHeight: 10
   wallThickness: 0.15
-  enableTeleport: 0
   playerPrefab: {fileID: 8805717297518738770, guid: f0f8bb73672a17541b020884b8c83882, type: 3}
   playerSpawnHeight: 1
   enemyFather: {fileID: 0}
   waveEnemyPrefab:
   - {fileID: 6469359493553425699, guid: 477a3bcdc4cffde4db81c51b785fae83, type: 3}
   maxEnemiesPerWaveRoom: 200
-  waveStartDelay: 5
-  waveSpawnInterval: 0.35
+  waveStartDelay: 2
+  waveSpawnInterval: 0.05
   minSpawnDistanceFromPlayer: 12
   maxSpawnDistanceFromPlayer: 30
   enemySpawnHeight: 1
