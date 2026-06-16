@@ -1,66 +1,38 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public sealed class DungeonBuilder
+[DisallowMultipleComponent]
+public sealed class DungeonBuilder : MonoBehaviour
 {
-    private readonly int dungeonWidth;
-    private readonly int dungeonHeight;
-    private readonly int minRoomSize;
-    private readonly int maxRoomSize;
-    private readonly int seed;
-    private readonly bool usePerlinNoise;
-    private readonly float perlinScale;
-    private readonly float densityThreshold;
-    private readonly float loopQualityBias;
-    private readonly float randomnessFactor;
-    private readonly float minGraphDistanceThreshold;
-    private readonly float extraConnectionFactor;
-    private readonly float deadEndKeepChance;
-    private readonly float deadEndConnectChance;
-    private readonly DensityMapGenerator densityGenerator;
-    private readonly DelaunayGenerator delaunayGenerator;
-    private readonly MSTGenerator mstGenerator;
-
-    public DungeonBuilder(
-        int dungeonWidth,
-        int dungeonHeight,
-        int minRoomSize,
-        int maxRoomSize,
-        int seed,
-        bool usePerlinNoise,
-        float perlinScale,
-        float densityThreshold,
-        float loopQualityBias,
-        float randomnessFactor,
-        float minGraphDistanceThreshold,
-        float extraConnectionFactor,
-        float deadEndKeepChance,
-        float deadEndConnectChance)
-    {
-        this.dungeonWidth = dungeonWidth;
-        this.dungeonHeight = dungeonHeight;
-        this.minRoomSize = minRoomSize;
-        this.maxRoomSize = maxRoomSize;
-        this.seed = seed;
-        this.usePerlinNoise = usePerlinNoise;
-        this.perlinScale = perlinScale;
-        this.densityThreshold = densityThreshold;
-        this.loopQualityBias = loopQualityBias;
-        this.randomnessFactor = randomnessFactor;
-        this.minGraphDistanceThreshold = minGraphDistanceThreshold;
-        this.extraConnectionFactor = extraConnectionFactor;
-        this.deadEndKeepChance = deadEndKeepChance;
-        this.deadEndConnectChance = deadEndConnectChance;
-        densityGenerator = new DensityMapGenerator(dungeonWidth, dungeonHeight, seed);
-        delaunayGenerator = new DelaunayGenerator();
-        mstGenerator = new MSTGenerator();
-    }
+    public int dungeonWidth;
+    public int dungeonHeight;
+    public int minRoomSize;
+    public int maxRoomSize;
+    public int seed;
+    public bool usePerlinNoise;
+    public float perlinScale;
+    public float densityThreshold;
+    public float loopQualityBias;
+    public float randomnessFactor;
+    public float minGraphDistanceThreshold;
+    public float extraConnectionFactor;
+    public float deadEndKeepChance;
+    public float deadEndConnectChance;
 
     public DungeonBuildResult Build()
     {
         List<Room> rooms = GenerateRooms();
         List<MSTEdge> mstEdges = GenerateConnections(rooms);
-        return new DungeonBuildResult(rooms, mstEdges);
+
+        DungeonBuildResult result = GetComponent<DungeonBuildResult>();
+        if (result == null)
+        {
+            result = gameObject.AddComponent<DungeonBuildResult>();
+        }
+
+        result.Rooms = rooms ?? new List<Room>();
+        result.MstEdges = mstEdges ?? new List<MSTEdge>();
+        return result;
     }
 
     private List<Room> GenerateRooms()
@@ -68,6 +40,7 @@ public sealed class DungeonBuilder
         float[,] densityMap = null;
         if (usePerlinNoise)
         {
+            DensityMapGenerator densityGenerator = new DensityMapGenerator(dungeonWidth, dungeonHeight, seed);
             densityMap = densityGenerator.GeneratePerlinNoise(perlinScale);
         }
 
@@ -77,6 +50,7 @@ public sealed class DungeonBuilder
 
         if (usePerlinNoise && densityMap != null)
         {
+            DensityMapGenerator densityGenerator = new DensityMapGenerator(dungeonWidth, dungeonHeight, seed);
             rooms = densityGenerator.FilterRoomsByDensity(rooms, densityMap, densityThreshold);
         }
 
@@ -97,6 +71,8 @@ public sealed class DungeonBuilder
             points.Add(room.center);
         }
 
+        DelaunayGenerator delaunayGenerator = new DelaunayGenerator();
+        MSTGenerator mstGenerator = new MSTGenerator();
         List<DelaunayTriangle> delaunayTriangles = delaunayGenerator.GenerateTriangulation(points);
         List<MSTEdge> delaunayEdges = delaunayGenerator.ExtractEdgesFromTriangles(delaunayTriangles);
         if (delaunayEdges.Count == 0)

@@ -1,12 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class ThirdPersonController : MonoBehaviour
 {
-    [Header("Camera")]
-    public Transform cameraPivot;
-    public float mouseSensitivity = 20f;
-    public float cameraDistance = 5f;
 
     [Header("Movement")]
     public float walkSpeed = 7f;
@@ -15,28 +12,20 @@ public class ThirdPersonController : MonoBehaviour
     [Header("Physics")]
     public Rigidbody rb;
 
-    private float yaw;
-    private float pitch;
-
     private Vector2 moveInput;
     private bool runInput;
+
+    
 
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
-
-        cameraPivot = GetComponentInChildren<Camera>().transform;
         rb = GetComponent<Rigidbody>();
+        
     }
 
     void Update()
     {
-        // ===== INPUT =====
-        Vector2 mouse = Mouse.current.delta.ReadValue();
-        yaw += mouse.x * mouseSensitivity * Time.deltaTime;
-        pitch -= mouse.y * mouseSensitivity * Time.deltaTime;
-        pitch = Mathf.Clamp(pitch, -70f, 70f);
-
         moveInput.x = Keyboard.current.dKey.isPressed ? 1 :
                      Keyboard.current.aKey.isPressed ? -1 : 0;
 
@@ -45,10 +34,9 @@ public class ThirdPersonController : MonoBehaviour
 
         runInput = Keyboard.current.leftShiftKey.isPressed;
 
-        // rotación jugador
-        transform.rotation = Quaternion.Euler(0, yaw, 0);
+        // Actualizar autoAttack automáticamente según condiciones
+        
 
-        UpdateCamera();
     }
 
     void FixedUpdate()
@@ -66,24 +54,21 @@ public class ThirdPersonController : MonoBehaviour
         Vector3 targetVelocity = direction * speed;
 
         Vector3 currentVelocity = rb.linearVelocity;
-        currentVelocity.y = rb.linearVelocity.y;
+        
+        // Suavizar el cambio de velocidad horizontal
+        Vector3 horizontalVelocity = new Vector3(currentVelocity.x, 0, currentVelocity.z);
+        Vector3 targetHorizontalVelocity = new Vector3(targetVelocity.x, 0, targetVelocity.z);
+        
+        Vector3 smoothedVelocity = Vector3.Lerp(horizontalVelocity, targetHorizontalVelocity, 0.15f);
 
         rb.linearVelocity = new Vector3(
-            targetVelocity.x,
+            smoothedVelocity.x,
             currentVelocity.y,
-            targetVelocity.z
+            smoothedVelocity.z
         );
     }
 
 
-    void UpdateCamera()
-    {
-        if (cameraPivot == null) return;
 
-        Quaternion rot = Quaternion.Euler(pitch, yaw, 0);
-        Vector3 offset = rot * new Vector3(0, 0, -cameraDistance);
 
-        cameraPivot.position = transform.position + offset;
-        cameraPivot.LookAt(transform.position + Vector3.up * 1.5f);
-    }
 }

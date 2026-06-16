@@ -99,6 +99,12 @@ MonoBehaviour:
   rotationSpeed: 5
   separationRadius: 10
   separationForce: 10
+  preferredCombatDistance: 3
+  combatDistanceTolerance: 0.75
+  strafeStrength: 1
+  approachStrength: 1.35
+  retreatStrength: 1.6
+  crowdAvoidanceStrength: 2.25
   velocity: {x: 0, y: 0, z: 0}
   ranged: 0
   attackRange: 3
@@ -124,12 +130,12 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.20048994, y: 1.4591644, z: 0.13804087}
-  m_Center: {x: 0.0050322115, y: 0.7304845, z: -0.016222402}
+  m_Size: {x: 0.8665444, y: 1.4591644, z: 0.75034314}
+  m_Center: {x: -0.000030249357, y: 0.7304845, z: -0.07295397}
 --- !u!54 &3392771828614487876
 Rigidbody:
   m_ObjectHideFlags: 0

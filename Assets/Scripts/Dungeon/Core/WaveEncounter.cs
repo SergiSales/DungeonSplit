@@ -3,49 +3,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public sealed class WaveEncounter
+
+[DisallowMultipleComponent]
+public sealed class WaveEncounter : MonoBehaviour
 {
     private const float MinimumRoomEdgePadding = 0.75f;
     private const float RoomEdgePaddingFactor = 0.35f;
     private const float MinimumSpawnableHalfExtent = 0.25f;
 
-    private readonly AssetsSpawner assetsSpawner;
-    private readonly GameObject[] waveEnemyPrefabs;
-    private readonly int maxEnemiesPerWaveRoom;
-    private readonly float waveStartDelay;
-    private readonly float waveSpawnInterval;
-    private readonly float minSpawnDistanceFromPlayer;
-    private readonly float maxSpawnDistanceFromPlayer;
-    private readonly float enemySpawnHeight;
-    private readonly int spawnPositionAttempts;
-    private readonly float cellSize;
-    private readonly float roomSpacingMultiplier;
-
-    public WaveEncounter(
-        AssetsSpawner assetsSpawner,
-        GameObject[] waveEnemyPrefabs,
-        int maxEnemiesPerWaveRoom,
-        float waveStartDelay,
-        float waveSpawnInterval,
-        float minSpawnDistanceFromPlayer,
-        float maxSpawnDistanceFromPlayer,
-        float enemySpawnHeight,
-        int spawnPositionAttempts,
-        float cellSize,
-        float roomSpacingMultiplier)
-    {
-        this.assetsSpawner = assetsSpawner;
-        this.waveEnemyPrefabs = waveEnemyPrefabs;
-        this.maxEnemiesPerWaveRoom = maxEnemiesPerWaveRoom;
-        this.waveStartDelay = waveStartDelay;
-        this.waveSpawnInterval = waveSpawnInterval;
-        this.minSpawnDistanceFromPlayer = minSpawnDistanceFromPlayer;
-        this.maxSpawnDistanceFromPlayer = maxSpawnDistanceFromPlayer;
-        this.enemySpawnHeight = enemySpawnHeight;
-        this.spawnPositionAttempts = spawnPositionAttempts;
-        this.cellSize = cellSize;
-        this.roomSpacingMultiplier = roomSpacingMultiplier;
-    }
+    public AssetsSpawner assetsSpawner;
+    public GameObject[] waveEnemyPrefabs;
+    public int maxEnemiesPerWaveRoom;
+    public float waveStartDelay;
+    public float waveSpawnInterval;
+    public float minSpawnDistanceFromPlayer;
+    public float maxSpawnDistanceFromPlayer;
+    public float enemySpawnHeight;
+    public int spawnPositionAttempts;
+    public float cellSize;
+    public float roomSpacingMultiplier;
 
     public GameObject EnsureEnemyParent(GameObject currentEnemyParent)
     {
@@ -55,7 +31,6 @@ public sealed class WaveEncounter
         }
 
         GameObject createdEnemyParent = new GameObject("Enemy Father");
-        Debug.Log("[Test12] enemyFather created");
         return createdEnemyParent;
     }
 

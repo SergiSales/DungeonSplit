@@ -1,14 +1,10 @@
 using System.Collections.Generic;
+using UnityEngine;
 
-public sealed class DungeonBuildResult
+[DisallowMultipleComponent]
+public sealed class DungeonBuildResult : MonoBehaviour
 {
-    public List<Room> Rooms { get; }
-    public List<MSTEdge> MstEdges { get; }
+    public List<Room> Rooms { get; set; } = new List<Room>();
+    public List<MSTEdge> MstEdges { get; set; } = new List<MSTEdge>();
     public int GeneratedRoomCount => Rooms.Count;
-
-    public DungeonBuildResult(List<Room> rooms, List<MSTEdge> mstEdges)
-    {
-        Rooms = rooms ?? new List<Room>();
-        MstEdges = mstEdges ?? new List<MSTEdge>();
-    }
 }

@@ -1,35 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public sealed class RoomPlanner
+public sealed class RoomPlanner : MonoBehaviour
 {
-    private readonly List<Room> rooms;
-    private readonly AssetsSpawner assetsSpawner;
-    private readonly GameObject playerPrefab;
-    private readonly float playerSpawnHeight;
-    private readonly float cellSize;
-    private readonly float roomSpacingMultiplier;
+    public List<Room> rooms;
+    public AssetsSpawner assetsSpawner;
+    public GameObject playerPrefab;
+    public float playerSpawnHeight;
+    public float cellSize;
+    public float roomSpacingMultiplier;
+
     private bool bossRoomAssigned;
     private bool playerSpawned;
 
-    public RoomPlanner(
-        List<Room> rooms,
-        AssetsSpawner assetsSpawner,
-        GameObject playerPrefab,
-        float playerSpawnHeight,
-        float cellSize,
-        float roomSpacingMultiplier)
-    {
-        this.rooms = rooms;
-        this.assetsSpawner = assetsSpawner;
-        this.playerPrefab = playerPrefab;
-        this.playerSpawnHeight = playerSpawnHeight;
-        this.cellSize = cellSize;
-        this.roomSpacingMultiplier = roomSpacingMultiplier;
-    }
-
     public void AssignRoomTypes()
     {
+        bossRoomAssigned = false;
+        playerSpawned = false;
+
         if (rooms == null || rooms.Count == 0)
         {
             Debug.LogWarning("[Test12] Cannot assign room types because no rooms were generated.");
@@ -128,5 +116,8 @@ public sealed class RoomPlanner
             playerRigidbody.linearVelocity = Vector3.zero;
             playerRigidbody.angularVelocity = Vector3.zero;
         }
+
+        RoomCameraController.FocusRoom(spawnPosition, spawnRoom.bounds);
+
     }
 }

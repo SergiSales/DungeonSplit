@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AssetsSpawner
+public class AssetsSpawner : MonoBehaviour
 {
     private const int WallHeight = 10;
     private const float TreasureHeight = 0.5f;
     private const float PortalHeight = 1f;
     private const float PortalInset = 0.5f;
+
 
     public void SpawnRooms(
         GameObject[] objectsPrefab,
@@ -57,7 +58,7 @@ public class AssetsSpawner
             gridPos.y * cellSize * roomSpacingMultiplier);
     }
 
-    private static GameObject GetPrefab(GameObject[] prefabs, int index)
+    private GameObject GetPrefab(GameObject[] prefabs, int index)
     {
         if (prefabs == null || index < 0 || index >= prefabs.Length)
         {
@@ -67,7 +68,7 @@ public class AssetsSpawner
         return prefabs[index];
     }
 
-    private static Dictionary<Vector2Int, List<Vector2Int>> BuildRoomConnections(List<MSTEdge> mstEdges)
+    private Dictionary<Vector2Int, List<Vector2Int>> BuildRoomConnections(List<MSTEdge> mstEdges)
     {
         Dictionary<Vector2Int, List<Vector2Int>> roomConnections = new Dictionary<Vector2Int, List<Vector2Int>>();
         if (mstEdges == null)
@@ -84,7 +85,7 @@ public class AssetsSpawner
         return roomConnections;
     }
 
-    private static Dictionary<Vector2Int, Room> BuildRoomLookup(List<Room> rooms)
+    private Dictionary<Vector2Int, Room> BuildRoomLookup(List<Room> rooms)
     {
         Dictionary<Vector2Int, Room> roomLookup = new Dictionary<Vector2Int, Room>();
         foreach (Room room in rooms)
@@ -95,7 +96,7 @@ public class AssetsSpawner
         return roomLookup;
     }
 
-    private static void AddConnection(Dictionary<Vector2Int, List<Vector2Int>> roomConnections, Vector2Int source, Vector2Int destination)
+    private void AddConnection(Dictionary<Vector2Int, List<Vector2Int>> roomConnections, Vector2Int source, Vector2Int destination)
     {
         if (!roomConnections.TryGetValue(source, out List<Vector2Int> destinations))
         {
@@ -152,7 +153,7 @@ public class AssetsSpawner
         ScaleRoom(instance.transform, room, cellSize);
     }
 
-    private static void ScaleRoom(Transform roomTransform, Room room, float cellSize)
+    private  void ScaleRoom(Transform roomTransform, Room room, float cellSize)
     {
         roomTransform.localScale = new Vector3(room.bounds.width * cellSize, 1f, room.bounds.height * cellSize);
     }
@@ -184,7 +185,7 @@ public class AssetsSpawner
         CreateWall(rightPos, verticalScale, parent, wallPrefab);
     }
 
-    private static void CreateWall(Vector3 position, Vector3 scale, Transform parent, GameObject wallPrefab)
+    private  void CreateWall(Vector3 position, Vector3 scale, Transform parent, GameObject wallPrefab)
     {
         if (wallPrefab == null)
         {
@@ -234,7 +235,7 @@ public class AssetsSpawner
         }
     }
 
-    private static Vector3 CalculatePortalPosition(Room currentRoom, Vector3 centerCurrent, Vector3 centerDestination, float cellSize)
+    private  Vector3 CalculatePortalPosition(Room currentRoom, Vector3 centerCurrent, Vector3 centerDestination, float cellSize)
     {
         Vector3 direction = (centerDestination - centerCurrent).normalized;
         float roomWidth = currentRoom.bounds.width * cellSize;

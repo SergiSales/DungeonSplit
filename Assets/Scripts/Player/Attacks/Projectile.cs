@@ -1,0 +1,62 @@
+using UnityEngine;
+
+public class Projectile : MonoBehaviour
+{
+    public int damage;
+    public int speed;
+    public int pierce;
+    public float range;
+
+    private GameObject player;
+    private Attacks attacks;
+    private EnemyBase enemy;
+
+    void Start()
+    {
+        player = GameObject.FindGameObjectWithTag("Player");
+        attacks = player.GetComponent<Attacks>();
+        
+    }
+
+    void Update()
+    {
+        // Mover el proyectil hacia adelante
+        transform.Translate(Vector3.forward * Time.deltaTime * speed);
+
+        if (Vector3.Distance(transform.position, player.transform.position) > range)
+        {
+            Destroy(gameObject);
+        }
+        
+    }
+
+    public void setStats(int damage, int speed, int pierce)
+    {
+        this.damage = damage;
+        this.speed = speed;
+        this.pierce = pierce;
+        this.range = 50f;
+    }
+
+
+    void OnTriggerEnter(Collider other){
+      if(other.CompareTag("Enemy")){
+        enemy = other.GetComponent<EnemyBase>();
+        if(enemy!=null){
+          enemy.TakeDamage(damage);
+          UnityEngine.Debug.Log("Enemy health: " + enemy.currentHealth);
+          pierce--;
+          if(pierce <= 0){
+            Destroy(gameObject);
+          }
+        }
+      }
+      else if(other.CompareTag("Wall")){
+        Destroy(gameObject);
+      }
+    }
+
+    
+
+
+}

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class UIMinimap : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class UIMinimap : MonoBehaviour
     public RectTransform mapContent;
     public GameObject roomUIPrefab;
     public GameObject playerIconPrefab; // <--- Ahora pedimos un Prefab
+    public TextMeshProUGUI TextInfo; // <--- Referencia al TextMeshProUGUI para mostrar información
 
     [Header("Referencias Jugador")]
     public Transform playerTransform; 
@@ -22,6 +24,11 @@ public class UIMinimap : MonoBehaviour
     private float cellSize;
     private float spacing;
     private RectTransform playerIconInstance;
+    public void Start()
+    {
+        TextInfo = GetComponentInChildren<TextMeshProUGUI>();
+        TextInfo.text = "";
+    }
 
     public void GenerateAbstractMap(List<Room> rooms, float cellSize, float spacing)
     {
@@ -63,7 +70,22 @@ public class UIMinimap : MonoBehaviour
             rt.anchorMin = new Vector2(0.5f, 0.5f);
             rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0f, 0f); 
-
+            switch (room.type)
+            {
+                case roomTypes.Player:
+                    roomUI.GetComponent<Image>().color = Color.green;
+                    break;
+                case roomTypes.Boss:
+                    roomUI.GetComponent<Image>().color = Color.red;
+                    break;
+                case roomTypes.Treasure:
+                    roomUI.GetComponent<Image>().color = Color.yellow;
+                    break;
+                default:
+                    roomUI.GetComponent<Image>().color = Color.white;
+                    break;
+                    
+            }
             roomObjects.Add(room, roomUI);
             roomUI.SetActive(room.visited);
         }
@@ -120,4 +142,6 @@ public class UIMinimap : MonoBehaviour
         playerIconInstance.anchoredPosition = new Vector2(uiX, uiY);
         playerIconInstance.localRotation = Quaternion.Euler(0, 0, playerTransform.eulerAngles.y);
     }
+
+    
 }

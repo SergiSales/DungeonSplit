@@ -182,7 +182,7 @@ public class Test11 : TestBase
         densityGenerator = new DensityMapGenerator(dungeonWidth, dungeonHeight, seed);
         delaunayGenerator = new DelaunayGenerator();
         mstGenerator = new MSTGenerator();
-        assetsSpawner = new AssetsSpawner();
+        //assetsSpawner = AssetsSpawner.GetOrCreate(gameObject);
     }
 
 
@@ -222,6 +222,7 @@ public class Test11 : TestBase
             playerRigidbody.angularVelocity = Vector3.zero;
         }
 
+        RoomCameraController.FocusRoom(spawnPosition);
 
     }
 

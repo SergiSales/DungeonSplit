@@ -32,9 +32,9 @@ public class Test12 : TestBase
 
     [Header("Room Spawning")]
     public GameObject[] objectsPrefab;
-    public float cellSize = 5f;
+    public float cellSize = 10f;
     public Transform roomsParent;
-    public float roomSpacingMultiplier = 5f;
+    public float roomSpacingMultiplier = 10f;
     public float wallHeight = 10f;
     public float wallThickness = 0.15f;
 
@@ -45,14 +45,13 @@ public class Test12 : TestBase
     [Header("Wave Rooms")]
     public GameObject enemyFather;
     public GameObject[] waveEnemyPrefab;
-    public int enemyCountInCurrentWave;
-    [Min(1)] public int maxEnemiesPerWaveRoom = 500;
-    [Min(0f)] public float waveStartDelay = 2f;
-    [Min(0.05f)] public float waveSpawnInterval = 0.05f;
-    [Min(0f)] public float minSpawnDistanceFromPlayer = 12f;
-    [Min(0f)] public float maxSpawnDistanceFromPlayer = 30f;
+    public int maxEnemiesPerWaveRoom = 100;
+    public float waveStartDelay = 2f;
+    private float waveSpawnInterval = 0.2f;
+    public float minSpawnDistanceFromPlayer = 12f;
+    public float maxSpawnDistanceFromPlayer = 30f;
     public float enemySpawnHeight = 1f;
-    [Min(1)] public int spawnPositionAttempts = 20;
+    public int spawnPositionAttempts = 20;
 
     [Header("Debug Stats")]
     public int generatedRoomCount;
@@ -64,16 +63,23 @@ public class Test12 : TestBase
     private AssetsSpawner assetsSpawner;
     private WaveEncounter waveEncounter;
     
+    
     private UIMinimap uiMinimap;
     #endregion
 
     private void Start()
     {
+        if (GameManager.instance == null)
+        {
+            GameObject gmObject = new GameObject("GameManager");
+            gmObject.AddComponent<GameManager>();
+        }
+        
         Stopwatch totalTimer = Stopwatch.StartNew();
         seed = Random.Range(0, 100000);
         InitializeTeleportState();
 
-        assetsSpawner = new AssetsSpawner();
+        assetsSpawner = gameObject.GetComponent<AssetsSpawner>() ?? gameObject.AddComponent<AssetsSpawner>();
         BuildDungeon();
         SetupScene();
 
@@ -84,21 +90,21 @@ public class Test12 : TestBase
 
     private void BuildDungeon()
     {
-        DungeonBuilder dungeonBuilder = new DungeonBuilder(
-            dungeonWidth,
-            dungeonHeight,
-            minRoomSize,
-            maxRoomSize,
-            seed,
-            usePerlinNoise,
-            perlinScale,
-            densityThreshold,
-            loopQualityBias,
-            randomnessFactor,
-            minGraphDistanceThreshold,
-            extraConnectionFactor,
-            deadEndKeepChance,
-            deadEndConnectChance);
+        DungeonBuilder dungeonBuilder = gameObject.GetComponent<DungeonBuilder>() ?? gameObject.AddComponent<DungeonBuilder>();
+        dungeonBuilder.dungeonWidth = dungeonWidth;
+        dungeonBuilder.dungeonHeight = dungeonHeight;
+        dungeonBuilder.minRoomSize = minRoomSize;
+        dungeonBuilder.maxRoomSize = maxRoomSize;
+        dungeonBuilder.seed = seed;
+        dungeonBuilder.usePerlinNoise = usePerlinNoise;
+        dungeonBuilder.perlinScale = perlinScale;
+        dungeonBuilder.densityThreshold = densityThreshold;
+        dungeonBuilder.loopQualityBias = loopQualityBias;
+        dungeonBuilder.randomnessFactor = randomnessFactor;
+        dungeonBuilder.minGraphDistanceThreshold = minGraphDistanceThreshold;
+        dungeonBuilder.extraConnectionFactor = extraConnectionFactor;
+        dungeonBuilder.deadEndKeepChance = deadEndKeepChance;
+        dungeonBuilder.deadEndConnectChance = deadEndConnectChance;
 
         DungeonBuildResult dungeon = dungeonBuilder.Build();
         rooms.Clear();
@@ -108,13 +114,13 @@ public class Test12 : TestBase
         mstEdges.AddRange(dungeon.MstEdges);
         generatedRoomCount = dungeon.GeneratedRoomCount;
 
-        RoomPlanner roomPlanner = new RoomPlanner(
-            rooms,
-            assetsSpawner,
-            playerPrefab,
-            playerSpawnHeight,
-            cellSize,
-            roomSpacingMultiplier);
+        RoomPlanner roomPlanner = gameObject.GetComponent<RoomPlanner>() ?? gameObject.AddComponent<RoomPlanner>();
+        roomPlanner.rooms = rooms;
+        roomPlanner.assetsSpawner = assetsSpawner;
+        roomPlanner.playerPrefab = playerPrefab;
+        roomPlanner.playerSpawnHeight = playerSpawnHeight;
+        roomPlanner.cellSize = cellSize;
+        roomPlanner.roomSpacingMultiplier = roomSpacingMultiplier;
         roomPlanner.AssignRoomTypes();
     }
 
@@ -162,6 +168,12 @@ public class Test12 : TestBase
             return;
         }
 
+        // Actualizar sala actual en GameManager
+        if (GameManager.instance != null)
+        {
+            GameManager.instance.SetCurrentRoom(room);
+        }
+
         if (room.type != roomTypes.Wave || room.waveStarted || room.cleared)
         {
             return;
@@ -171,6 +183,7 @@ public class Test12 : TestBase
         LockTeleportForWave();
         waveEncounter ??= CreateWaveEncounter();
         enemyFather = waveEncounter.EnsureEnemyParent(enemyFather);
+        StartCoroutine(UpdateInfoText("Prepare for the wave!"));
         StartCoroutine(waveEncounter.RunWave(
             room,
             playerTransform,
@@ -181,23 +194,38 @@ public class Test12 : TestBase
 
     private WaveEncounter CreateWaveEncounter()
     {
-        return new WaveEncounter(
-            assetsSpawner,
-            waveEnemyPrefab,
-            maxEnemiesPerWaveRoom,
-            waveStartDelay,
-            waveSpawnInterval,
-            minSpawnDistanceFromPlayer,
-            maxSpawnDistanceFromPlayer,
-            enemySpawnHeight,
-            spawnPositionAttempts,
-            cellSize,
-            roomSpacingMultiplier);
+        WaveEncounter encounter = gameObject.GetComponent<WaveEncounter>() ?? gameObject.AddComponent<WaveEncounter>();
+        encounter.assetsSpawner = assetsSpawner;
+        encounter.waveEnemyPrefabs = waveEnemyPrefab;
+        encounter.maxEnemiesPerWaveRoom = maxEnemiesPerWaveRoom;
+        encounter.waveStartDelay = waveStartDelay;
+        encounter.waveSpawnInterval = waveSpawnInterval;
+        encounter.minSpawnDistanceFromPlayer = minSpawnDistanceFromPlayer;
+        encounter.maxSpawnDistanceFromPlayer = maxSpawnDistanceFromPlayer;
+        encounter.enemySpawnHeight = enemySpawnHeight;
+        encounter.spawnPositionAttempts = spawnPositionAttempts;
+        encounter.cellSize = cellSize;
+        encounter.roomSpacingMultiplier = roomSpacingMultiplier;
+        return encounter;
     }
 
     private void CompleteWaveRoom(Room room)
     {
         room.cleared = true;
+        GameManager.instance?.NotifyWaveEnemiesCleared(room);
         UnlockTeleportAfterWave();
     }
+
+    IEnumerator UpdateInfoText(string message)
+    {
+        if (uiMinimap == null || uiMinimap.TextInfo == null)
+        {
+            yield break;
+        }
+
+        uiMinimap.TextInfo.text = message;
+        yield return new WaitForSeconds(3f);
+        uiMinimap.TextInfo.text = "";
+    }
+
 }

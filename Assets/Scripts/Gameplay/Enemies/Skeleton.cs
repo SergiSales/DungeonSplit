@@ -38,6 +38,7 @@ public class Skeleton : EnemyBase
 
     public override void TakeDamage(int amount)
     {
+        UnityEngine.Debug.Log($"Skeleton took {amount} damage.");
         if (dead) return;
 
         currentHealth -= amount;
@@ -51,7 +52,8 @@ public class Skeleton : EnemyBase
     {
         dead = true;
         //TODO: Implement death animation
-        Destroy(gameObject, 2f);
+        Destroy(gameObject, 1f);
+        UnityEngine.Debug.Log("Skeleton died.");
     }
 
 
