@@ -49,7 +49,7 @@ public class TestBase : MonoBehaviour
             }
 
             EnemyBase enemy = enemyObject.GetComponent<EnemyBase>();
-            if (enemy == null || !enemy.dead)
+            if (enemy == null)
             {
                 return false;
             }

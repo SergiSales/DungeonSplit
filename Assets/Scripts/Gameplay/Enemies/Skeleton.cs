@@ -11,7 +11,7 @@ public class Skeleton : EnemyBase
         maxHealth = 100;
         currentHealth = maxHealth;
         damage = 15;
-        moveSpeed = 2.5f;
+        moveSpeed = 4f;
         rotationSpeed = 10f;
         ranged = false;
         dead = false;
@@ -32,18 +32,20 @@ public class Skeleton : EnemyBase
         {
             return;
         }
-
-        ChasePlayer(playerTarget);
+        if (alive)
+        {
+            ChasePlayer(playerTarget);
+        }
     }
 
     public override void TakeDamage(int amount)
     {
-        UnityEngine.Debug.Log($"Skeleton took {amount} damage.");
         if (dead) return;
 
         currentHealth -= amount;
         if (currentHealth <= 0)
         {
+            GetComponent<Collider>().enabled = false;
             Die();
         }
     }
@@ -52,7 +54,8 @@ public class Skeleton : EnemyBase
     {
         dead = true;
         //TODO: Implement death animation
-        Destroy(gameObject, 1f);
+        DropExp();
+        Destroy(gameObject, 0.2f);
         UnityEngine.Debug.Log("Skeleton died.");
     }
 
@@ -98,4 +101,15 @@ public class Skeleton : EnemyBase
 
         MoveInDirection(desiredDirection + avoidance);
     }
+
+
+    void DropExp()
+    {
+        if (expDropPrefab != null)
+        {
+            Instantiate(expDropPrefab, transform.position, Quaternion.identity);
+        }
+    }
+
+
 }

@@ -183,26 +183,22 @@ MonoBehaviour:
   - {fileID: 3560371809530916548, guid: 6ab5a5e4b75aa0a468338ede68d0ad15, type: 3}
   - {fileID: 1204845917652040484, guid: 23e34fd33c4e8504995d282ab5ae7caa, type: 3}
   - {fileID: 6200720779111275133, guid: 1083f87f08232f541942f4a22a00127e, type: 3}
-  - {fileID: 0}
   cellSize: 5
   roomsParent: {fileID: 0}
   roomSpacingMultiplier: 5
-  wallHeight: 10
   wallThickness: 0.15
   playerPrefab: {fileID: 8805717297518738770, guid: f0f8bb73672a17541b020884b8c83882, type: 3}
   playerSpawnHeight: 1
   enemyFather: {fileID: 0}
   waveEnemyPrefab:
   - {fileID: 6469359493553425699, guid: 477a3bcdc4cffde4db81c51b785fae83, type: 3}
-  enemyCountInCurrentWave: 0
   maxEnemiesPerWaveRoom: 200
+  enemiesSimultaneouslyInRoom: 30
   waveStartDelay: 2
-  waveSpawnInterval: 0.05
   minSpawnDistanceFromPlayer: 12
   maxSpawnDistanceFromPlayer: 30
   enemySpawnHeight: 1
   spawnPositionAttempts: 20
-  generatedRoomCount: 0
 --- !u!1 &804448203
 GameObject:
   m_ObjectHideFlags: 0
@@ -239,8 +235,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -22, y: -32.31}
-  m_SizeDelta: {x: 600, y: 500}
+  m_AnchoredPosition: {x: -22, y: -32.310547}
+  m_SizeDelta: {x: 400, y: 300}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &804448205
 MonoBehaviour:
@@ -306,9 +302,10 @@ GameObject:
   - component: {fileID: 838639363}
   - component: {fileID: 838639362}
   - component: {fileID: 838639361}
+  - component: {fileID: 838639365}
   m_Layer: 0
   m_Name: Camera
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -526,6 +523,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &838639365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 838639360}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d49553bdd9f0946449b73b8618acb059, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraBehaviour
+  target: {fileID: 0}
+  offset: {x: 0, y: 15, z: 0}
+  smoothSpeed: 5
 --- !u!1 &931821484
 GameObject:
   m_ObjectHideFlags: 0
@@ -715,7 +727,7 @@ MonoBehaviour:
   m_UiScaleMode: 0
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 0, y: 0}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -785,7 +797,7 @@ MonoBehaviour:
   playerIconPrefab: {fileID: 8079379963672304158, guid: 0ee548828653efc4298dc6d4804d551b, type: 3}
   TextInfo: {fileID: 0}
   playerTransform: {fileID: 0}
-  uiScale: 2
+  uiScale: 3
 --- !u!1 &1655803785
 GameObject:
   m_ObjectHideFlags: 0
@@ -898,7 +910,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 400, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

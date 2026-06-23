@@ -222,7 +222,6 @@ public class Test11 : TestBase
             playerRigidbody.angularVelocity = Vector3.zero;
         }
 
-        RoomCameraController.FocusRoom(spawnPosition);
 
     }
 

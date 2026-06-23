@@ -32,10 +32,9 @@ public class Test12 : TestBase
 
     [Header("Room Spawning")]
     public GameObject[] objectsPrefab;
-    public float cellSize = 10f;
+    public float cellSize = 5f;
     public Transform roomsParent;
-    public float roomSpacingMultiplier = 10f;
-    public float wallHeight = 10f;
+    public float roomSpacingMultiplier = 5f;
     public float wallThickness = 0.15f;
 
     [Header("Player Spawn")]
@@ -45,7 +44,8 @@ public class Test12 : TestBase
     [Header("Wave Rooms")]
     public GameObject enemyFather;
     public GameObject[] waveEnemyPrefab;
-    public int maxEnemiesPerWaveRoom = 100;
+    public int maxEnemiesPerWaveRoom = 200;
+    public int enemiesSimultaneouslyInRoom = 30;
     public float waveStartDelay = 2f;
     private float waveSpawnInterval = 0.2f;
     public float minSpawnDistanceFromPlayer = 12f;
@@ -54,7 +54,6 @@ public class Test12 : TestBase
     public int spawnPositionAttempts = 20;
 
     [Header("Debug Stats")]
-    public int generatedRoomCount;
     #endregion
 
     #region Private Variables
@@ -112,7 +111,6 @@ public class Test12 : TestBase
 
         mstEdges.Clear();
         mstEdges.AddRange(dungeon.MstEdges);
-        generatedRoomCount = dungeon.GeneratedRoomCount;
 
         RoomPlanner roomPlanner = gameObject.GetComponent<RoomPlanner>() ?? gameObject.AddComponent<RoomPlanner>();
         roomPlanner.rooms = rooms;
@@ -198,6 +196,7 @@ public class Test12 : TestBase
         encounter.assetsSpawner = assetsSpawner;
         encounter.waveEnemyPrefabs = waveEnemyPrefab;
         encounter.maxEnemiesPerWaveRoom = maxEnemiesPerWaveRoom;
+        encounter.enemiesSimultaneouslyInRoom = enemiesSimultaneouslyInRoom;
         encounter.waveStartDelay = waveStartDelay;
         encounter.waveSpawnInterval = waveSpawnInterval;
         encounter.minSpawnDistanceFromPlayer = minSpawnDistanceFromPlayer;

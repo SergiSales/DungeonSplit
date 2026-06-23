@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-[DisallowMultipleComponent]
-public sealed class WaveEncounter : MonoBehaviour
+public class WaveEncounter : MonoBehaviour
 {
     private const float MinimumRoomEdgePadding = 0.75f;
     private const float RoomEdgePaddingFactor = 0.35f;
@@ -14,6 +13,7 @@ public sealed class WaveEncounter : MonoBehaviour
     public AssetsSpawner assetsSpawner;
     public GameObject[] waveEnemyPrefabs;
     public int maxEnemiesPerWaveRoom;
+    public int enemiesSimultaneouslyInRoom;
     public float waveStartDelay;
     public float waveSpawnInterval;
     public float minSpawnDistanceFromPlayer;
@@ -43,32 +43,44 @@ public sealed class WaveEncounter : MonoBehaviour
     {
         yield return new WaitForSeconds(waveStartDelay);
 
-        GameObject enemyPrefab = GetWaveEnemyPrefab();
-        if (enemyPrefab == null)
-        {
-            Debug.LogWarning("[Test12] No wave enemy prefab assigned. Wave room cannot spawn enemies.");
-            onWaveCompleted?.Invoke();
-            yield break;
-        }
-
         List<GameObject> spawnedWaveEnemies = new List<GameObject>(maxEnemiesPerWaveRoom);
-        for (int spawnedEnemies = 0; spawnedEnemies < maxEnemiesPerWaveRoom; )
+        int spawnedEnemies = 0;
+        while (spawnedEnemies < maxEnemiesPerWaveRoom)
         {
-            if (TryGetSpawnPositionInRoom(room, playerTransform.position, out Vector3 spawnPosition))
+            // Contar enemigos activos (no destruidos)
+            int activeEnemies = 0;
+            for (int i = spawnedWaveEnemies.Count - 1; i >= 0; i--)
             {
-                GameObject enemy = UnityEngine.Object.Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
-                if (enemyParent != null)
+                if (spawnedWaveEnemies[i] == null)
                 {
-                    enemy.transform.SetParent(enemyParent.transform);
+                    spawnedWaveEnemies.RemoveAt(i);
                 }
+                else
+                {
+                    activeEnemies++;
+                }
+            }
 
-                spawnedWaveEnemies.Add(enemy);
-                spawnedEnemies++;
+            // Solo spawnear si hay espacio disponible
+            if (activeEnemies < enemiesSimultaneouslyInRoom)
+            {
+                if (TryGetSpawnPositionInRoom(room, playerTransform.position, out Vector3 spawnPosition))
+                {
+                    GameObject enemy = Instantiate(waveEnemyPrefabs[0], spawnPosition, Quaternion.identity);
+                    if (enemyParent != null)
+                    {
+                        enemy.transform.SetParent(enemyParent.transform);
+                    }
+
+                    spawnedWaveEnemies.Add(enemy);
+                    spawnedEnemies++;
+                    Debug.Log($"Spawned wave enemy {spawnedEnemies}/{maxEnemiesPerWaveRoom}");
+                }
             }
 
             yield return new WaitForSeconds(waveSpawnInterval);
         }
-
+        
         yield return new WaitUntil(() => areAllWaveEnemiesDefeated == null || areAllWaveEnemiesDefeated(spawnedWaveEnemies));
         onWaveCompleted?.Invoke();
     }

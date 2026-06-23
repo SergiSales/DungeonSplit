@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class AssetsSpawner : MonoBehaviour
 {
-    private const int WallHeight = 10;
+    private const int WallHeight = 20;
     private const float TreasureHeight = 0.5f;
     private const float PortalHeight = 1f;
     private const float PortalInset = 0.5f;

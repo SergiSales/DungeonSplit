@@ -15,11 +15,10 @@ public class UIMinimap : MonoBehaviour
     public Transform playerTransform; 
 
     [Header("Ajustes")]
-    public float uiScale = 2f;
+    public float uiScale = 3f;
 
     // Variables internas
     private Dictionary<Room, GameObject> roomObjects = new Dictionary<Room, GameObject>();
-    private RectTransform instantiatedPlayerIcon; // <--- Guardamos la referencia del icono una vez creado
     private Vector2 dungeonCenter;
     private float cellSize;
     private float spacing;

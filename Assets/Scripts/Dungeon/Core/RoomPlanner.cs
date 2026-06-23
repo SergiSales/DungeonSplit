@@ -89,7 +89,7 @@ public sealed class RoomPlanner : MonoBehaviour
         spawnPosition.y = playerSpawnHeight;
         spawnRoom.visited = true;
 
-        ThirdPersonController player = Object.FindAnyObjectByType<ThirdPersonController>();
+        ThirdPersonController player = GameObject.FindAnyObjectByType<ThirdPersonController>();
         if (player == null)
         {
             if (playerPrefab == null)
@@ -98,7 +98,7 @@ public sealed class RoomPlanner : MonoBehaviour
                 return;
             }
 
-            GameObject playerInstance = Object.Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
+            GameObject playerInstance = GameObject.Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
             player = playerInstance.GetComponent<ThirdPersonController>();
         }
 
@@ -117,7 +117,13 @@ public sealed class RoomPlanner : MonoBehaviour
             playerRigidbody.angularVelocity = Vector3.zero;
         }
 
-        RoomCameraController.FocusRoom(spawnPosition, spawnRoom.bounds);
+        CameraBehaviour cameraFollow =
+        Camera.main.GetComponent<CameraBehaviour>();
+
+        if (cameraFollow != null)
+        {
+            cameraFollow.target = player.transform;
+        }
 
     }
 }

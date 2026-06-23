@@ -30,6 +30,7 @@ public sealed class DungeonBuilder : MonoBehaviour
             result = gameObject.AddComponent<DungeonBuildResult>();
         }
 
+        
         result.Rooms = rooms ?? new List<Room>();
         result.MstEdges = mstEdges ?? new List<MSTEdge>();
         return result;

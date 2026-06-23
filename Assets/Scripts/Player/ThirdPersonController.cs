@@ -67,8 +67,4 @@ public class ThirdPersonController : MonoBehaviour
             smoothedVelocity.z
         );
     }
-
-
-
-
 }

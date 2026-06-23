@@ -126,6 +126,7 @@ GameObject:
   - component: {fileID: 1273042868460014231}
   - component: {fileID: 7815216510447944007}
   - component: {fileID: 3132500232824537250}
+  - component: {fileID: 1514247750934633912}
   - component: {fileID: -7542686073225138040}
   m_Layer: 0
   m_Name: Player
@@ -215,6 +216,24 @@ MonoBehaviour:
   walkSpeed: 7
   runSpeed: 11
   rb: {fileID: 0}
+--- !u!114 &1514247750934633912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8805717297518738770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbf872b71bc60034489391b12b9a1df1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
+  maxHealth: 100
+  currentHealth: 0
+  expDrop: 50
+  exp: 0
+  level: 1
+  levelsExp: 00000000640000002c01000058020000e8030000dc05000034080000f00a0000100e000094110000
 --- !u!114 &-7542686073225138040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -228,10 +247,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Attacks
   autoAttack: 0
-  basicShotPrefab: {fileID: 6546047873570396810, guid: 6fe7e8ee2321b6b47b9002a64c02497e, type: 3}
+  attackPrefabs:
+  - {fileID: 6546047873570396810, guid: 6fe7e8ee2321b6b47b9002a64c02497e, type: 3}
+  - {fileID: 1465003848842879466, guid: 8e6a2ff46237b59468cef534ab03301a, type: 3}
+  - {fileID: 9144560516294313096, guid: f44991972e9754647baf47c174b8f316, type: 3}
   basicShotCooldown: 1
   basicShotRange: 20
   basicShotDamage: 25
   basicShotSpeed: 10
   basicShotPierce: 0
   basicShotNumber: 1
+  orbitBallRadius: 3
+  orbitBallHeight: 1
+  orbitBallDamage: 10
+  orbitBallSpeed: 180
+  orbitBallNumber: 0
+  chainLightningEnabled: 0
+  lightningDamage: 20
+  segments: 5
+  lightningRange: 6
+  lightningCooldown: 3
+  lightningLifetime: 0.2

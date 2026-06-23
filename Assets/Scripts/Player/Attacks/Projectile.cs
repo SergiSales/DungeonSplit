@@ -8,13 +8,11 @@ public class Projectile : MonoBehaviour
     public float range;
 
     private GameObject player;
-    private Attacks attacks;
     private EnemyBase enemy;
 
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player");
-        attacks = player.GetComponent<Attacks>();
         
     }
 
@@ -44,7 +42,6 @@ public class Projectile : MonoBehaviour
         enemy = other.GetComponent<EnemyBase>();
         if(enemy!=null){
           enemy.TakeDamage(damage);
-          UnityEngine.Debug.Log("Enemy health: " + enemy.currentHealth);
           pierce--;
           if(pierce <= 0){
             Destroy(gameObject);

@@ -10,18 +10,19 @@ public class EnemyBase : MonoBehaviour
     public int damage = 10;
 
     [Header("Movement")]
-    public float moveSpeed = 3f;
-    public float acceleration = 10f;
-    public float rotationSpeed = 3f;
-    public float separationRadius = 1.5f;
-    public float separationForce = 2f;
-    public float preferredCombatDistance = 3f;
-    public float combatDistanceTolerance = 0.75f;
-    public float strafeStrength = 1f;
-    public float approachStrength = 1.35f;
-    public float retreatStrength = 1.6f;
-    public float crowdAvoidanceStrength = 2.25f;
-    public Vector3 velocity;
+    protected bool alive = true;
+    protected float moveSpeed = 3f;
+    protected float acceleration = 10f;
+    protected float rotationSpeed = 3f;
+    protected float separationRadius = 1.5f;
+    protected float separationForce = 2f;
+    protected float preferredCombatDistance = 3f;
+    protected float combatDistanceTolerance = 0.75f;
+    protected float strafeStrength = 1f;
+    protected float approachStrength = 1.35f;
+    protected float retreatStrength = 1.6f;
+    protected float crowdAvoidanceStrength = 2.25f;
+    protected Vector3 velocity;
     protected static Collider[] buffer = new Collider[20];
 
     [Header("Combat")]
@@ -30,14 +31,12 @@ public class EnemyBase : MonoBehaviour
     public float attackCooldown = 2f;
     public float projectileSpeed = 5f;
 
-    [Header("Rewards")]
-    public int xpReward = 10;
-    public int goldReward = 5;
-    public float dropChance = 0.5f;
+    protected int xpReward = 10;
+    protected float dropChance = 0.1f;
+    public GameObject expDropPrefab;
 
-    [Header("Runtime")]
-    public bool dead = false;
-    public Transform playerTarget;
+    protected bool dead = false;
+    protected Transform playerTarget;
     protected Rigidbody rb;
     protected float orbitDirection;
 
