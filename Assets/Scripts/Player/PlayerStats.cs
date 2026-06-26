@@ -1,28 +1,77 @@
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
+
 
 public class PlayerStats : MonoBehaviour
 {
     [Header("Player Stats")]
-    private int maxHealth = 100;
-    private int currentHealth;
-    private int expDrop = 50;
+    public int maxHealth = 100;
+    public int currentHealth;
+    public int expDrop = 50;
     private int exp;
+    private int nextLevelExp;
     private int level = 1;
-    private int[] levelsExp = { 0, 100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500 }; // Experience required for each level
+    private int[] expToNextLevel = {0, 400, 900, 1500, 2200, 3000, 3900, 4900, 6000, 7200, 8500, 9900, 11400, 13000, 14700};
+
+
+    [Header("UI Sliders")]
+    public Slider healthSlider;
+    public Slider xpSlider;
+    private float timerInvulnerable = 0f;
+    private bool invulnerable = false;
+
 
     void Start()
     {
+        level = 1;
+        exp = 0;
+
+
         currentHealth = maxHealth;
+
+        GameObject healthObj = GameObject.Find("PlayerHealth");
+        healthSlider = healthObj.GetComponent<Slider>();
+
+        GameObject xpObj = GameObject.Find("XP");
+        xpSlider = xpObj.GetComponent<Slider>();
+
+        healthSlider.maxValue = maxHealth;
+        healthSlider.value = currentHealth;
+
+        
+        nextLevelExp = expToNextLevel[level];
+
+        xpSlider.maxValue = nextLevelExp;
+        xpSlider.value = 0;
+    }
+
+    void Update()
+    {
+        if (invulnerable == true)
+        {
+            timerInvulnerable += Time.deltaTime;
+            if(timerInvulnerable >= 1f)
+            {
+                invulnerable = false;
+                timerInvulnerable = 0;
+            }
+        }
+        
     }
 
     public void TakeDamage(int amount)
     {
-        currentHealth -= amount;
-        if (currentHealth <= 0)
+        if(invulnerable == false)
         {
-            Die();
+            currentHealth -= amount;
+            healthSlider.value = currentHealth;
+            if (currentHealth <= 0)
+            {
+                Die();
+            }
         }
+        
+        
     }
 
     private void Die()
@@ -34,7 +83,7 @@ public class PlayerStats : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("Enemy"))
+        if(other.CompareTag("Enemy") || other.CompareTag("Boss"))
         {
             EnemyBase enemyAttack = other.GetComponent<EnemyBase>();
             if (enemyAttack != null)
@@ -42,20 +91,48 @@ public class PlayerStats : MonoBehaviour
                 TakeDamage(enemyAttack.damage);
             }
         }
-        else if (other.CompareTag("reward"))
+    }
+    public void addExp()
+    {
+        
+        exp += expDrop;
+
+        xpSlider.value = exp;
+
+        if (exp >= nextLevelExp)
         {
-            addExp();
-            Destroy(other.gameObject);
+            LevelUp();
         }
     }
 
-    void addExp()
+    void LevelUp()
     {
-        exp += expDrop;
-        if (level < levelsExp.Length && exp >= levelsExp[level-1])
-        {
-            level++;
-            Debug.Log("Player leveled up to level " + level);
-        }
+        level++;
+
+        exp = 0;
+
+        currentHealth += maxHealth / 10;
+
+        if (level < expToNextLevel.Length)
+            nextLevelExp = expToNextLevel[level];
+        else
+            nextLevelExp = expToNextLevel[^1];
+
+        xpSlider.maxValue = nextLevelExp;
+        xpSlider.value = 0;
+
+        GameManager.instance.SetLevelUpState();
+
+        FindAnyObjectByType<Attacks>().StartUpgradeSelection();
     }
+
+
+
+
+
+    
+
+
+
+
 }

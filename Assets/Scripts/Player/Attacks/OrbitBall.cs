@@ -70,7 +70,7 @@ public class OrbitBall : MonoBehaviour
     }
 
     void OnTriggerEnter(Collider other){
-      if(other.CompareTag("Enemy")){
+      if(other.CompareTag("Enemy")  || other.CompareTag("Boss")){
         enemy = other.GetComponent<EnemyBase>();
         if(enemy!=null){
           enemy.TakeDamage(damage);

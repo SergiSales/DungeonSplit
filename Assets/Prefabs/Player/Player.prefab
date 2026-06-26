@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &3784009670070470013
+--- !u!1 &8805717297518738770
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,47 +8,51 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 775277215231132493}
-  - component: {fileID: 2333071878876684191}
-  - component: {fileID: 2813571747186850591}
-  - component: {fileID: 8648178593723887908}
+  - component: {fileID: 5501606845539288759}
+  - component: {fileID: 7292522102434735489}
+  - component: {fileID: 2856768469068471940}
+  - component: {fileID: 1273042868460014231}
+  - component: {fileID: 7815216510447944007}
+  - component: {fileID: 3132500232824537250}
+  - component: {fileID: 1514247750934633912}
+  - component: {fileID: -7542686073225138040}
   m_Layer: 0
-  m_Name: Capsule
-  m_TagString: Untagged
+  m_Name: Player
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &775277215231132493
+--- !u!4 &5501606845539288759
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3784009670070470013}
+  m_GameObject: {fileID: 8805717297518738770}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 5501606845539288759}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &2333071878876684191
+--- !u!33 &7292522102434735489
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3784009670070470013}
+  m_GameObject: {fileID: 8805717297518738770}
   m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &2813571747186850591
+--- !u!23 &2856768469068471940
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3784009670070470013}
+  m_GameObject: {fileID: 8805717297518738770}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -91,66 +95,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &8648178593723887908
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3784009670070470013}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &8805717297518738770
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5501606845539288759}
-  - component: {fileID: 1273042868460014231}
-  - component: {fileID: 7815216510447944007}
-  - component: {fileID: 3132500232824537250}
-  - component: {fileID: 1514247750934633912}
-  - component: {fileID: -7542686073225138040}
-  m_Layer: 0
-  m_Name: Player
-  m_TagString: Player
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5501606845539288759
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8805717297518738770}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 1
-  m_Children:
-  - {fileID: 775277215231132493}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &1273042868460014231
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -199,7 +143,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 112
+  m_Constraints: 116
   m_CollisionDetection: 0
 --- !u!114 &3132500232824537250
 MonoBehaviour:
@@ -213,8 +157,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0c991f3fa053784ebc75d621f05d0ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonController
-  walkSpeed: 7
-  runSpeed: 11
+  walkSpeed: 11
+  runSpeed: 28.46
   rb: {fileID: 0}
 --- !u!114 &1514247750934633912
 MonoBehaviour:
@@ -230,10 +174,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   maxHealth: 100
   currentHealth: 0
-  expDrop: 50
-  exp: 0
-  level: 1
-  levelsExp: 00000000640000002c01000058020000e8030000dc05000034080000f00a0000100e000094110000
+  expDrop: 1000
+  healthSlider: {fileID: 0}
+  xpSlider: {fileID: 0}
 --- !u!114 &-7542686073225138040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -253,11 +196,11 @@ MonoBehaviour:
   - {fileID: 9144560516294313096, guid: f44991972e9754647baf47c174b8f316, type: 3}
   basicShotCooldown: 1
   basicShotRange: 20
-  basicShotDamage: 25
-  basicShotSpeed: 10
+  basicShotDamage: 100
+  basicShotSpeed: 20
   basicShotPierce: 0
   basicShotNumber: 1
-  orbitBallRadius: 3
+  orbitBallEnabled: 0
   orbitBallHeight: 1
   orbitBallDamage: 10
   orbitBallSpeed: 180
@@ -268,3 +211,4 @@ MonoBehaviour:
   lightningRange: 6
   lightningCooldown: 3
   lightningLifetime: 0.2
+  finished: 0

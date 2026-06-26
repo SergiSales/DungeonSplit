@@ -38,9 +38,10 @@ public class Projectile : MonoBehaviour
 
 
     void OnTriggerEnter(Collider other){
-      if(other.CompareTag("Enemy")){
+      if(other.CompareTag("Enemy") || other.CompareTag("Boss")){
         enemy = other.GetComponent<EnemyBase>();
         if(enemy!=null){
+          Debug.Log("damage to: " + other.name);
           enemy.TakeDamage(damage);
           pierce--;
           if(pierce <= 0){
@@ -52,8 +53,7 @@ public class Projectile : MonoBehaviour
         Destroy(gameObject);
       }
     }
-
-    
+   
 
 
 }

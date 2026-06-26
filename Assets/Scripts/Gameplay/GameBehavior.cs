@@ -39,7 +39,7 @@ public class GameBehavior : TestBase
 
     [Header("Player Spawn")]
     public GameObject playerPrefab;
-    public float playerSpawnHeight = 1f;
+    public float playerSpawnHeight = 1.5f;
 
     [Header("Wave Rooms")]
     public GameObject enemyFather;
@@ -50,7 +50,7 @@ public class GameBehavior : TestBase
     private float waveSpawnInterval = 0.2f;
     public float minSpawnDistanceFromPlayer = 12f;
     public float maxSpawnDistanceFromPlayer = 30f;
-    public float enemySpawnHeight = 1f;
+    public float enemySpawnHeight = 1.5f;
     public int spawnPositionAttempts = 20;
 
     [Header("Debug Stats")]
@@ -180,7 +180,7 @@ public class GameBehavior : TestBase
         {
             if (roomsCleared >= roomsNeeded)
             {
-                BossEncounter(room);
+                StartCoroutine(BossEncounter(room));
             }
             else
             {
@@ -234,10 +234,14 @@ public class GameBehavior : TestBase
 
     IEnumerator BossEncounter(Room room)
     {
+        LockTeleportForWave();
         StartCoroutine(UpdateInfoText("The boss is coming!"));
 
+
         yield return new WaitForSeconds(3f);
-        Vector3 spawnPosition = new Vector3(room.center.x, enemySpawnHeight, room.center.y);
+        Vector3 spawnPosition = assetsSpawner.GridToWorld(room.center, cellSize, roomSpacingMultiplier);
+        spawnPosition.y = enemySpawnHeight;
+
         Instantiate(EnemyPrefab[1], spawnPosition, Quaternion.identity);
     }
 

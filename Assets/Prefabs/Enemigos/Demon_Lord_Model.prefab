@@ -56,13 +56,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: Demon_Lord_Model
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 045ff8b8d3db38a45a90bf9d078199cc, type: 3}
+      propertyPath: m_TagString
+      value: Boss
+      objectReference: {fileID: 0}
     - target: {fileID: 1640574174137304352, guid: 045ff8b8d3db38a45a90bf9d078199cc, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 4685a051609ab75419325073ca7520a4, type: 2}
     - target: {fileID: 5866666021909216657, guid: 045ff8b8d3db38a45a90bf9d078199cc, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8893251117342154756, guid: 045ff8b8d3db38a45a90bf9d078199cc, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -71,5 +75,98 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 045ff8b8d3db38a45a90bf9d078199cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3602168698100126045}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 045ff8b8d3db38a45a90bf9d078199cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3571244381470780647}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 045ff8b8d3db38a45a90bf9d078199cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7940387738326600412}
   m_SourcePrefab: {fileID: 100100000, guid: 045ff8b8d3db38a45a90bf9d078199cc, type: 3}
+--- !u!1 &919418744401084127 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 045ff8b8d3db38a45a90bf9d078199cc, type: 3}
+  m_PrefabInstance: {fileID: 852859974419342}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &3602168698100126045
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919418744401084127}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.3005371, y: 2.5272605, z: 1}
+  m_Center: {x: -0.0435791, y: 1.201017, z: 0}
+--- !u!114 &3571244381470780647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919418744401084127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40716caa1fdfb0449a826590aa3dfc1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Boss
+  maxHealth: 100
+  currentHealth: 0
+  damage: 10
+  moveSpeed: 3
+  ranged: 1
+  attackRange: 3
+  attackCooldown: 2
+  projectileSpeed: 5
+  expDropPrefab: {fileID: 1145363337344768791, guid: c4548224d77f56447823c2bfb28f296f, type: 3}
+  healthBar: {fileID: 0}
+  fill: {fileID: 0}
+  phase2Icon: {fileID: 0}
+  phase3Icon: {fileID: 0}
+  minionPrefab: {fileID: 6469359493553425699, guid: 477a3bcdc4cffde4db81c51b785fae83, type: 3}
+  maxMinions: 12
+  summonCooldown: 5
+  projectilePrefab: {fileID: 8260776393927382447, guid: 99814088e95b8504ab11bca7ca93d626, type: 3}
+  bossAttackCooldown: 1.5
+  stopDistance: 7
+--- !u!54 &7940387738326600412
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919418744401084127}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0

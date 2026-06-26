@@ -85,26 +85,6 @@ public class WaveEncounter : MonoBehaviour
         onWaveCompleted?.Invoke();
     }
 
-    private GameObject GetWaveEnemyPrefab()
-    {
-        if (waveEnemyPrefabs == null || waveEnemyPrefabs.Length == 0)
-        {
-            return null;
-        }
-
-        int startIndex = UnityEngine.Random.Range(0, waveEnemyPrefabs.Length);
-        for (int offset = 0; offset < waveEnemyPrefabs.Length; offset++)
-        {
-            GameObject prefab = waveEnemyPrefabs[(startIndex + offset) % waveEnemyPrefabs.Length];
-            if (prefab != null)
-            {
-                return prefab;
-            }
-        }
-
-        return null;
-    }
-
     private bool TryGetSpawnPositionInRoom(Room room, Vector3 playerPosition, out Vector3 spawnPosition)
     {
         Vector3 roomCenter = assetsSpawner.GridToWorld(room.center, cellSize, roomSpacingMultiplier);

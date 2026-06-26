@@ -11,7 +11,7 @@ public class EnemyBase : MonoBehaviour
 
     [Header("Movement")]
     protected bool alive = true;
-    protected float moveSpeed = 3f;
+    public float moveSpeed = 3f;
     protected float acceleration = 10f;
     protected float rotationSpeed = 3f;
     protected float separationRadius = 1.5f;
@@ -36,7 +36,7 @@ public class EnemyBase : MonoBehaviour
     public GameObject expDropPrefab;
 
     protected bool dead = false;
-    protected Transform playerTarget;
+    public Transform playerTarget;
     protected Rigidbody rb;
     protected float orbitDirection;
 
@@ -77,7 +77,8 @@ public class EnemyBase : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             Collider candidate = buffer[i];
-            if (candidate == null || candidate.gameObject == gameObject || !candidate.CompareTag("Enemy"))
+            if (candidate == null || candidate.gameObject == gameObject || !candidate.CompareTag("Enemy") || !candidate.CompareTag("Enemy"))
+            if (candidate == null || candidate.gameObject == gameObject || !candidate.CompareTag("Enemy") || !candidate.CompareTag("Enemy"))
             {
                 continue;
             }

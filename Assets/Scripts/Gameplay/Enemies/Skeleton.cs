@@ -5,13 +5,15 @@ public class Skeleton : EnemyBase
     private const float EngageStrafeFactor = 0.35f;
     private const float PressureFactor = 0.25f;
     private const float MinDistanceToPlayer = 0.001f;
+    private const float xpDropChance = 0.2f;
 
     private void Start()
     {
+        alive = true;
         maxHealth = 100;
         currentHealth = maxHealth;
         damage = 15;
-        moveSpeed = 4f;
+        moveSpeed = 5f;
         rotationSpeed = 10f;
         ranged = false;
         dead = false;
@@ -28,6 +30,8 @@ public class Skeleton : EnemyBase
 
     private void FixedUpdate()
     {
+        if (!GameManager.instance.IsPlaying()) return;
+        
         if (dead || !TryEnsurePlayerTarget())
         {
             return;
@@ -53,8 +57,8 @@ public class Skeleton : EnemyBase
     public override void Die()
     {
         dead = true;
-        //TODO: Implement death animation
-        DropExp();
+        if(Random.Range(0.0f, 1.0f) <= 0.2f) DropExp();
+        
         Destroy(gameObject, 0.2f);
         UnityEngine.Debug.Log("Skeleton died.");
     }
