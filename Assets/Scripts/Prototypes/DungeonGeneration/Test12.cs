@@ -155,7 +155,7 @@ public class Test12 : TestBase
         }
 
         uiMinimap.playerTransform = playerController.transform;
-        uiMinimap.GenerateAbstractMap(rooms, cellSize, roomSpacingMultiplier);
+        uiMinimap.GenerateAbstractMap(rooms);
     }
 
     public override void HandlePlayerTeleported(Transform playerTransform, Room room)

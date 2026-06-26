@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 3132500232824537250}
   - component: {fileID: 1514247750934633912}
   - component: {fileID: -7542686073225138040}
+  - component: {fileID: 1469606475988929551}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -157,8 +158,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0c991f3fa053784ebc75d621f05d0ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonController
-  walkSpeed: 11
-  runSpeed: 28.46
+  walkSpeed: 10
+  runSpeed: 15
   rb: {fileID: 0}
 --- !u!114 &1514247750934633912
 MonoBehaviour:
@@ -174,9 +175,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   maxHealth: 100
   currentHealth: 0
-  expDrop: 1000
+  expDrop: 50
   healthSlider: {fileID: 0}
   xpSlider: {fileID: 0}
+  r: {fileID: 2856768469068471940}
 --- !u!114 &-7542686073225138040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -196,7 +198,7 @@ MonoBehaviour:
   - {fileID: 9144560516294313096, guid: f44991972e9754647baf47c174b8f316, type: 3}
   basicShotCooldown: 1
   basicShotRange: 20
-  basicShotDamage: 100
+  basicShotDamage: 50
   basicShotSpeed: 20
   basicShotPierce: 0
   basicShotNumber: 1
@@ -212,3 +214,16 @@ MonoBehaviour:
   lightningCooldown: 3
   lightningLifetime: 0.2
   finished: 0
+--- !u!114 &1469606475988929551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8805717297518738770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec093295528dad74fa049ce8563c4131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TreasureDetector
+  detectionRadius: 2

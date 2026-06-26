@@ -143,24 +143,22 @@ public class GameBehavior : TestBase
     {
         if (uiMinimap == null)
         {
-            UnityEngine.Debug.LogWarning("[Test12] No UIMinimap found in scene.");
             return;
         }
 
         ThirdPersonController playerController = FindAnyObjectByType<ThirdPersonController>();
         if (playerController == null)
         {
-            UnityEngine.Debug.LogWarning("[Test12] No player found for minimap initialization.");
             return;
         }
 
         uiMinimap.playerTransform = playerController.transform;
-        uiMinimap.GenerateAbstractMap(rooms, cellSize, roomSpacingMultiplier);
+        uiMinimap.GenerateAbstractMap(rooms);
     }
 
     public override void HandlePlayerTeleported(Transform playerTransform, Room room)
     {
-        UnityEngine.Debug.Log($"[Test12] Room Type: {room.type}");
+        
         if (playerTransform == null || room == null)
         {
             return;
@@ -187,10 +185,14 @@ public class GameBehavior : TestBase
                 StartCoroutine(UpdateInfoText("The boss is sleeping..."));
             }
         }
+        
+        if(room.type == roomTypes.Treasure && !room.cleared)
+        {
+            StartCoroutine(UpdateInfoText("Open the chest to exit the room"));
+        }
 
         if (room.type != roomTypes.Wave || room.waveStarted || room.cleared)
         {
-
             return;
         }
 
@@ -228,8 +230,31 @@ public class GameBehavior : TestBase
     private void CompleteWaveRoom(Room room)
     {
         room.cleared = true;
+        UnityEngine.Debug.Log("Room Cleared");
         GameManager.instance?.NotifyWaveEnemiesCleared(room);
         UnlockTeleportAfterWave();
+        AttractAllRewardOrbsToPlayer();
+    }
+
+    private void AttractAllRewardOrbsToPlayer()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null)
+        {
+            return;
+        }
+
+        GameObject[] rewardOrbs = GameObject.FindGameObjectsWithTag("reward");
+        foreach (GameObject orbObject in rewardOrbs)
+        {
+            if (orbObject == null) continue;
+
+            EXPOrb orb = orbObject.GetComponent<EXPOrb>();
+            if (orb != null)
+            {
+                orb.ForceAttractToPlayer(player.transform);
+            }
+        }
     }
 
     IEnumerator BossEncounter(Room room)

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,15 +22,16 @@ public class Boss : EnemyBase
     [Header("Attack")]
     public GameObject projectilePrefab;
     public float bossAttackCooldown = 1.5f;
+    public int attackSpeed = 15;
     float attackTimer;
 
     [Header("Movement")]
     public float stopDistance = 7f;
     void Start()
     {
-        maxHealth = 1000;
+        maxHealth = 5000;
         currentHealth = maxHealth;
-        damage = 40;
+        damage = 20;
         moveSpeed = 2f;
         rotationSpeed = 10f;
         ranged = true;
@@ -114,14 +116,12 @@ public class Boss : EnemyBase
 
         if (hp <= 0.33f)
         {
-            Debug.Log("RED");
             fill.color = new Color(1f,0.05f,0);
             phase3Icon.transform.gameObject.SetActive(false);
         }
 
         else if (hp <= 0.66f)
         {
-            Debug.Log("ORAGE");
             phase = 2;
             fill.color = new Color(1f, 0.5f, 0f);
             phase2Icon.transform.gameObject.SetActive(false);
@@ -129,7 +129,6 @@ public class Boss : EnemyBase
 
         else
         {
-            Debug.Log("YELLOW");
             phase = 1;
         }
     }
@@ -241,7 +240,8 @@ public class Boss : EnemyBase
             Vector3 dir = direction;
             Quaternion rotation = Quaternion.LookRotation(dir);
 
-            Instantiate(projectilePrefab, transform.position, rotation);
+            GameObject eb = Instantiate(projectilePrefab, transform.position, rotation);
+            eb.GetComponent<EnemyBullet>().SetStats(damage, attackSpeed);
             
         }
         else if (phase == 3)
@@ -262,7 +262,8 @@ public class Boss : EnemyBase
                 Vector3 dir = Quaternion.Euler(0, angle, 0) * direction;
                 Quaternion rotation = Quaternion.LookRotation(dir);
 
-                Instantiate(projectilePrefab, transform.position, rotation);
+                GameObject eb = Instantiate(projectilePrefab, transform.position, rotation);
+                eb.GetComponent<EnemyBullet>().SetStats(damage, attackSpeed);
             }
         }
 
@@ -302,12 +303,15 @@ public class Boss : EnemyBase
             .GetComponent<Attacks>()
             .GameOver();
 
-        Destroy(gameObject, 3f);
+        Destroy(gameObject, 2.5f);
+        
+        StartCoroutine(GameManager.instance.SetGameOver(true));
+        
     }
 
     public override void TakeDamage(int amount)
     {
-        Debug.Log("Boss damaged: " + amount);
+        StartCoroutine(DamageFlash());
         currentHealth -= amount;
         if(currentHealth <= 0)
         {
@@ -318,4 +322,11 @@ public class Boss : EnemyBase
         UpdateUI();
     }
 
+    void setEnd()
+    {
+        GameManager.instance.SetGameOver(false);
+        Destroy(gameObject, 2.5f);
+        
+    }
 }
+

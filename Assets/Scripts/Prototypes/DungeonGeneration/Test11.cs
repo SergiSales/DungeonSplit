@@ -167,7 +167,7 @@ public class Test11 : TestBase
         uiMinimap.playerTransform = player.transform;
             
         // Llamamos a la función actualizada con los parámetros extra
-        uiMinimap.GenerateAbstractMap(rooms, cellSize, roomSpacingMultiplier);
+        uiMinimap.GenerateAbstractMap(rooms);
         
         
         

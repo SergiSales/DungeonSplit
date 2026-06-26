@@ -4,20 +4,21 @@ public class EnemyBullet : MonoBehaviour
 {
     public int damage = 50;
     public int speed = 15;
-    public float range = 20f;
+    public float range = 10f;
 
     private PlayerStats enemy;
 
-    void Start()
+    public void SetStats(int d, int s)
     {
         
-        damage = 50;
-        speed = 15;
-        range = 20f;
+        damage = d;
+        speed = s;
+        range = 10f;
     }
 
     void Update()
     {
+      if (!GameManager.instance.IsPlaying()) return;
         // Mover el proyectil hacia adelante
         transform.Translate(Vector3.forward * Time.deltaTime * speed);
         
@@ -34,7 +35,6 @@ public class EnemyBullet : MonoBehaviour
       if(other.CompareTag("Player")){
         enemy = other.GetComponent<PlayerStats>();
         if(enemy!=null){
-          Debug.Log("damage to: " + other.name);
           enemy.TakeDamage(damage);
           Destroy(gameObject);
         }

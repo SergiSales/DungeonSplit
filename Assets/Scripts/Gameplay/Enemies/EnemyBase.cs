@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using System.Collections;
 public class EnemyBase : MonoBehaviour
 {
     private const float MinPlanarMagnitude = 0.001f;
@@ -30,9 +30,6 @@ public class EnemyBase : MonoBehaviour
     public float attackRange = 3f;
     public float attackCooldown = 2f;
     public float projectileSpeed = 5f;
-
-    protected int xpReward = 10;
-    protected float dropChance = 0.1f;
     public GameObject expDropPrefab;
 
     protected bool dead = false;
@@ -40,10 +37,17 @@ public class EnemyBase : MonoBehaviour
     protected Rigidbody rb;
     protected float orbitDirection;
 
+
+    public Renderer enemyRenderer;
+    private Color originalColor;
+
+
+
     protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody>();
         orbitDirection = Random.value < 0.5f ? -1f : 1f;
+        originalColor = enemyRenderer.material.color;
     }
 
     protected bool TryEnsurePlayerTarget()
@@ -150,4 +154,14 @@ public class EnemyBase : MonoBehaviour
     public virtual void ChasePlayer(Transform player)
     {
     }
+
+    public IEnumerator DamageFlash()
+    {
+        enemyRenderer.material.color = Color.red;
+
+        yield return new WaitForSeconds(0.15f);
+
+        enemyRenderer.material.color = originalColor;
+    }
+
 }

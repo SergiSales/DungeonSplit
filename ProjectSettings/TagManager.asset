@@ -9,6 +9,8 @@ TagManager:
   - reward
   - HealthBoss
   - Boss
+  - TextInteraccion
+  - Chest
   layers:
   - Default
   - TransparentFX
@@ -45,6 +47,9 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Chest
+    uniqueID: 1068450875
     locked: 0
   m_RenderingLayers:
   - Default

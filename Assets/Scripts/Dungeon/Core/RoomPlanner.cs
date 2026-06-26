@@ -20,7 +20,6 @@ public sealed class RoomPlanner : MonoBehaviour
 
         if (rooms == null || rooms.Count == 0)
         {
-            Debug.LogWarning("[Test12] Cannot assign room types because no rooms were generated.");
             return;
         }
 
@@ -94,17 +93,15 @@ public sealed class RoomPlanner : MonoBehaviour
         {
             if (playerPrefab == null)
             {
-                Debug.LogWarning("[Test12] No player found in scene and no player prefab assigned.");
                 return;
             }
 
-            GameObject playerInstance = GameObject.Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
+            GameObject playerInstance = Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
             player = playerInstance.GetComponent<ThirdPersonController>();
         }
 
         if (player == null)
         {
-            Debug.LogWarning("[Test12] The spawned player prefab does not have a ThirdPersonController.");
             return;
         }
 

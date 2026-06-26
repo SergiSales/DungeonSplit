@@ -9,9 +9,8 @@ public class PlayerStats : MonoBehaviour
     public int currentHealth;
     public int expDrop = 50;
     private int exp;
-    private int nextLevelExp;
     private int level = 1;
-    private int[] expToNextLevel = {0, 400, 900, 1500, 2200, 3000, 3900, 4900, 6000, 7200, 8500, 9900, 11400, 13000, 14700};
+    private int nextLevelExp;
 
 
     [Header("UI Sliders")]
@@ -20,6 +19,9 @@ public class PlayerStats : MonoBehaviour
     private float timerInvulnerable = 0f;
     private bool invulnerable = false;
 
+
+    public Renderer r;
+    private Color originalColor;
 
     void Start()
     {
@@ -39,14 +41,17 @@ public class PlayerStats : MonoBehaviour
         healthSlider.value = currentHealth;
 
         
-        nextLevelExp = expToNextLevel[level];
+        nextLevelExp = GetNextLevelExp();
 
         xpSlider.maxValue = nextLevelExp;
         xpSlider.value = 0;
+
+        originalColor = r.material.color;
     }
 
     void Update()
     {
+        if (!GameManager.instance.IsPlaying()) return;
         if (invulnerable == true)
         {
             timerInvulnerable += Time.deltaTime;
@@ -54,6 +59,7 @@ public class PlayerStats : MonoBehaviour
             {
                 invulnerable = false;
                 timerInvulnerable = 0;
+                r.material.color = originalColor;
             }
         }
         
@@ -63,8 +69,10 @@ public class PlayerStats : MonoBehaviour
     {
         if(invulnerable == false)
         {
+            r.material.color = Color.red;
             currentHealth -= amount;
             healthSlider.value = currentHealth;
+            invulnerable = true;
             if (currentHealth <= 0)
             {
                 Die();
@@ -76,16 +84,29 @@ public class PlayerStats : MonoBehaviour
 
     private void Die()
     {
-        // Handle player death (e.g., respawn, game over, etc.)
-        Debug.Log("Player has died.");
+        GameManager.instance.state = GameState.GameEnd;
+        StartCoroutine(GameManager.instance.SetGameOver(false));
     }
 
+
+    void OnCollisionEnter(Collision other) {
+        if(other.gameObject.CompareTag("Enemy") || other.gameObject.CompareTag("Boss"))
+        {
+            EnemyBase enemyAttack = other.gameObject.GetComponent<EnemyBase>();
+            
+            if (enemyAttack != null)
+            {
+                TakeDamage(enemyAttack.damage);
+            }
+        }
+    }
 
     void OnTriggerEnter(Collider other)
     {
         if(other.CompareTag("Enemy") || other.CompareTag("Boss"))
         {
             EnemyBase enemyAttack = other.GetComponent<EnemyBase>();
+            
             if (enemyAttack != null)
             {
                 TakeDamage(enemyAttack.damage);
@@ -104,19 +125,21 @@ public class PlayerStats : MonoBehaviour
             LevelUp();
         }
     }
+    private int GetNextLevelExp()
+    {
+        return Mathf.FloorToInt(400f * Mathf.Pow(level, 1.6f));
+    }
 
-    void LevelUp()
+    public void LevelUp()
     {
         level++;
 
         exp = 0;
 
         currentHealth += maxHealth / 10;
+        if(currentHealth>maxHealth) currentHealth = maxHealth;
 
-        if (level < expToNextLevel.Length)
-            nextLevelExp = expToNextLevel[level];
-        else
-            nextLevelExp = expToNextLevel[^1];
+        nextLevelExp = GetNextLevelExp();
 
         xpSlider.maxValue = nextLevelExp;
         xpSlider.value = 0;

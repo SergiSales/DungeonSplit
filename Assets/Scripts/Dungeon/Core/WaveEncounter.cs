@@ -74,14 +74,26 @@ public class WaveEncounter : MonoBehaviour
 
                     spawnedWaveEnemies.Add(enemy);
                     spawnedEnemies++;
-                    Debug.Log($"Spawned wave enemy {spawnedEnemies}/{maxEnemiesPerWaveRoom}");
                 }
             }
 
             yield return new WaitForSeconds(waveSpawnInterval);
         }
         
-        yield return new WaitUntil(() => areAllWaveEnemiesDefeated == null || areAllWaveEnemiesDefeated(spawnedWaveEnemies));
+        // Esperar a que todos los enemigos que se han generado mueran antes de completar la oleada.
+        yield return new WaitUntil(() =>
+        {
+            for (int i = spawnedWaveEnemies.Count - 1; i >= 0; i--)
+            {
+                if (spawnedWaveEnemies[i] == null)
+                {
+                    spawnedWaveEnemies.RemoveAt(i);
+                }
+            }
+
+            return spawnedWaveEnemies.Count == 0;
+        });
+
         onWaveCompleted?.Invoke();
     }
 

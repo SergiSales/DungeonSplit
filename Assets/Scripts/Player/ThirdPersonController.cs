@@ -25,6 +25,12 @@ public class ThirdPersonController : MonoBehaviour
 
     void Update()
     {
+        if (!GameManager.instance.IsPlaying())
+        {
+            moveInput.x = 0;
+            moveInput.y = 0;
+            return;
+        } 
         moveInput.x = Keyboard.current.dKey.isPressed ? 1 :
                      Keyboard.current.aKey.isPressed ? -1 : 0;
 

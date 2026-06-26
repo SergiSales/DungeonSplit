@@ -1,10 +1,12 @@
 using System;
 using UnityEngine;
+using System.Collections;
 
 public enum GameState
 {
     Playing,
-    LevelUp
+    LevelUp,
+    GameEnd
 }
 
 public class GameManager : MonoBehaviour
@@ -19,6 +21,12 @@ public class GameManager : MonoBehaviour
     public event Action<Room> WaveEnemiesCleared;
 
     public bool IsPlaying() => state == GameState.Playing;
+
+    public GameObject WIN;
+    public GameObject LOSE;
+
+    public Transform cameraTransform;
+
     
     private void Awake()
     {
@@ -30,6 +38,13 @@ public class GameManager : MonoBehaviour
         
         instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    private void Start()
+    {
+        WIN.SetActive(false);
+        LOSE.SetActive(false);
+        
     }
     
     public void SetCurrentRoom(Room room)
@@ -72,6 +87,22 @@ public class GameManager : MonoBehaviour
     {
         state = GameState.Playing;
         Time.timeScale = 1f;
+    }
+
+    public IEnumerator SetGameOver(bool c)
+    {
+
+        yield return new WaitForSeconds(2.5f);
+        if (c)
+        {
+            WIN.SetActive(true);
+            
+        }
+        else
+        {
+            LOSE.SetActive(true);
+        }
+        
     }
     
 }

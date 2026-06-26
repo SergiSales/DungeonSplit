@@ -130,7 +130,7 @@ public class AssetsSpawner : MonoBehaviour
 
         if (roomConnections.TryGetValue(room.center, out List<Vector2Int> destinations))
         {
-            SpawnPortals(portalPrefab, room, destinations, roomLookup, cellSize, roomSpacingMultiplier, uiMinimap, roomParent);
+            SpawnPortals(portalPrefab, room, destinations, roomLookup, cellSize, roomSpacingMultiplier, wallThickness, uiMinimap, roomParent);
         }
     }
 
@@ -141,15 +141,26 @@ public class AssetsSpawner : MonoBehaviour
             return;
         }
 
-        Vector3 treasurePosition = GridToWorld(room.center, cellSize, roomSpacingMultiplier);
+        Vector3 center = GridToWorld(room.center, cellSize, roomSpacingMultiplier);
+
+        float halfWidth = (room.bounds.width * cellSize) * 0.4f;
+        float halfHeight = (room.bounds.height * cellSize) * 0.4f;
+
+        Vector2 randomOffset = new Vector2(
+            Random.Range(-halfWidth, halfWidth),
+            Random.Range(-halfHeight, halfHeight)
+        );
+
+        Vector3 treasurePosition = center + new Vector3(randomOffset.x, 0f, randomOffset.y);
         treasurePosition.y = TreasureHeight;
-        Object.Instantiate(treasurePrefab, treasurePosition, Quaternion.identity, parent);
+
+        Instantiate(treasurePrefab, treasurePosition, Quaternion.identity, parent);
     }
 
     private void SpawnFloor(Room room, Transform parent, GameObject floorPrefab, float cellSize, float roomSpacingMultiplier)
     {
         Vector3 worldPos = GridToWorld(room.center, cellSize, roomSpacingMultiplier);
-        GameObject instance = Object.Instantiate(floorPrefab, worldPos, Quaternion.identity, parent);
+        GameObject instance = Instantiate(floorPrefab, worldPos, Quaternion.identity, parent);
         ScaleRoom(instance.transform, room, cellSize);
     }
 
@@ -192,7 +203,7 @@ public class AssetsSpawner : MonoBehaviour
             return;
         }
 
-        GameObject wall = Object.Instantiate(wallPrefab, position, Quaternion.identity, parent);
+        GameObject wall = Instantiate(wallPrefab, position, Quaternion.identity, parent);
         wall.transform.localScale = scale;
     }
 
@@ -203,12 +214,12 @@ public class AssetsSpawner : MonoBehaviour
         Dictionary<Vector2Int, Room> roomLookup,
         float cellSize,
         float roomSpacingMultiplier,
+        float wallThickness,
         UIMinimap uiMinimap,
         Transform portalParent)
     {
         if (portalPrefab == null)
         {
-            Debug.LogWarning("[AssetsSpawner] Portal prefab is missing.");
             return;
         }
 
@@ -221,10 +232,10 @@ public class AssetsSpawner : MonoBehaviour
 
             Vector3 centerCurrent = GridToWorld(currentRoom.center, cellSize, roomSpacingMultiplier);
             Vector3 centerDestination = GridToWorld(destinationRoom.center, cellSize, roomSpacingMultiplier);
-            Vector3 portalPosition = CalculatePortalPosition(currentRoom, centerCurrent, centerDestination, cellSize);
+            Vector3 portalPosition = CalculatePortalPosition(currentRoom, centerCurrent, centerDestination, cellSize, wallThickness);
             Quaternion portalRotation = Quaternion.LookRotation(centerDestination - portalPosition);
 
-            GameObject portal = Object.Instantiate(portalPrefab, portalPosition, portalRotation, portalParent);
+            GameObject portal = Instantiate(portalPrefab, portalPosition, portalRotation, portalParent);
             RoomPortal portalScript = portal.GetComponent<RoomPortal>() ?? portal.AddComponent<RoomPortal>();
             portalScript.destinationPosition = new Vector3(
                 destinationRoom.center.x * cellSize * roomSpacingMultiplier,
@@ -235,29 +246,30 @@ public class AssetsSpawner : MonoBehaviour
         }
     }
 
-    private  Vector3 CalculatePortalPosition(Room currentRoom, Vector3 centerCurrent, Vector3 centerDestination, float cellSize)
+    private Vector3 CalculatePortalPosition(Room currentRoom, Vector3 centerCurrent, Vector3 centerDestination, float cellSize, float wallThickness)
     {
-        Vector3 direction = (centerDestination - centerCurrent).normalized;
-        float roomWidth = currentRoom.bounds.width * cellSize;
-        float roomHeight = currentRoom.bounds.height * cellSize;
-        Vector3 portalPosition = centerCurrent;
+        Vector3 dir = (centerDestination - centerCurrent).normalized;
 
-        if (Mathf.Abs(direction.x) > Mathf.Abs(direction.z))
+        float halfWidth = (currentRoom.bounds.width * cellSize) * 0.5f;
+        float halfHeight = (currentRoom.bounds.height * cellSize) * 0.5f;
+
+        Vector3 offset = Vector3.zero;
+
+        // margen: pared + pequeño inset del portal
+        float margin = (wallThickness * 0.5f) + PortalInset;
+
+        if (Mathf.Abs(dir.x) > Mathf.Abs(dir.z))
         {
-            float offsetX = (roomWidth / 2f) - PortalInset;
-            portalPosition += direction.x > 0f
-                ? new Vector3(offsetX, 0f, 0f)
-                : new Vector3(-offsetX, 0f, 0f);
+            offset.x = Mathf.Sign(dir.x) * (halfWidth - margin);
         }
         else
         {
-            float offsetZ = (roomHeight / 2f) - PortalInset;
-            portalPosition += direction.z > 0f
-                ? new Vector3(0f, 0f, offsetZ)
-                : new Vector3(0f, 0f, -offsetZ);
+            offset.z = Mathf.Sign(dir.z) * (halfHeight - margin);
         }
 
-        portalPosition.y = PortalHeight;
-        return portalPosition;
+        Vector3 portalPos = centerCurrent + offset;
+        portalPos.y = PortalHeight;
+
+        return portalPos;
     }
 }

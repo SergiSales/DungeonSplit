@@ -74,6 +74,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 3568690780008231645}
   m_SourcePrefab: {fileID: 100100000, guid: f3392e95529ae7540ad53657e3d0ce7d, type: 3}
+--- !u!137 &4523808106260745692 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -1458767714218345042, guid: f3392e95529ae7540ad53657e3d0ce7d, type: 3}
+  m_PrefabInstance: {fileID: 6126762459899408498}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &6469359493553425699 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: f3392e95529ae7540ad53657e3d0ce7d, type: 3}
@@ -142,26 +147,12 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 0
   damage: 10
-  alive: 1
   moveSpeed: 5
-  acceleration: 10
-  rotationSpeed: 5
-  separationRadius: 10
-  separationForce: 10
-  preferredCombatDistance: 3
-  combatDistanceTolerance: 0.75
-  strafeStrength: 1
-  approachStrength: 1.35
-  retreatStrength: 1.6
-  crowdAvoidanceStrength: 2.25
-  velocity: {x: 0, y: 0, z: 0}
   ranged: 0
   attackRange: 3
   attackCooldown: 2
   projectileSpeed: 5
-  xpReward: 10
-  goldReward: 5
-  dropChance: 0.5
   expDropPrefab: {fileID: 1145363337344768791, guid: c4548224d77f56447823c2bfb28f296f, type: 3}
-  dead: 0
   playerTarget: {fileID: 0}
+  enemyRenderer: {fileID: 4523808106260745692}
+  xpParent: {fileID: 0}

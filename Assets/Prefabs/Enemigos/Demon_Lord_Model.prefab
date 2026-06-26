@@ -124,15 +124,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40716caa1fdfb0449a826590aa3dfc1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Boss
-  maxHealth: 100
+  maxHealth: 5000
   currentHealth: 0
-  damage: 10
+  damage: 20
   moveSpeed: 3
   ranged: 1
   attackRange: 3
   attackCooldown: 2
   projectileSpeed: 5
   expDropPrefab: {fileID: 1145363337344768791, guid: c4548224d77f56447823c2bfb28f296f, type: 3}
+  playerTarget: {fileID: 0}
+  enemyRenderer: {fileID: 960725446666708435}
   healthBar: {fileID: 0}
   fill: {fileID: 0}
   phase2Icon: {fileID: 0}
@@ -142,6 +144,7 @@ MonoBehaviour:
   summonCooldown: 5
   projectilePrefab: {fileID: 8260776393927382447, guid: 99814088e95b8504ab11bca7ca93d626, type: 3}
   bossAttackCooldown: 1.5
+  attackSpeed: 15
   stopDistance: 7
 --- !u!54 &7940387738326600412
 Rigidbody:
@@ -170,3 +173,8 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!137 &960725446666708435 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -8262371249201682851, guid: 045ff8b8d3db38a45a90bf9d078199cc, type: 3}
+  m_PrefabInstance: {fileID: 852859974419342}
+  m_PrefabAsset: {fileID: 0}

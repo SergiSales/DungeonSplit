@@ -20,19 +20,16 @@ public class UIMinimap : MonoBehaviour
     // Variables internas
     private Dictionary<Room, GameObject> roomObjects = new Dictionary<Room, GameObject>();
     private Vector2 dungeonCenter;
-    private float cellSize;
-    private float spacing;
     private RectTransform playerIconInstance;
+    private GameObject iconObj;
     public void Start()
     {
         TextInfo = GetComponentInChildren<TextMeshProUGUI>();
         TextInfo.text = "";
     }
 
-    public void GenerateAbstractMap(List<Room> rooms, float cellSize, float spacing)
+    public void GenerateAbstractMap(List<Room> rooms)
     {
-        this.cellSize = cellSize;
-        this.spacing = spacing;
         roomObjects.Clear();
         
         // 1. Limpiamos TODO el contenido (ahora sí destruimos todo, ya que el icono es un prefab)
@@ -92,12 +89,11 @@ public class UIMinimap : MonoBehaviour
         // 4. Instanciamos el icono del jugador
         if (playerIconPrefab != null)
         {
-            GameObject iconObj = Instantiate(playerIconPrefab, mapContent);
+            iconObj = Instantiate(playerIconPrefab, mapContent);
+            iconObj.SetActive(false);
             playerIconInstance = iconObj.GetComponent<RectTransform>();
-            
-            // Forzamos a que el icono sea el último hijo para que se dibuje SIEMPRE por encima de las salas
-            playerIconInstance.SetAsLastSibling();
         }
+
     }
 
     public void RevealRoom(Room room)
@@ -109,37 +105,13 @@ public class UIMinimap : MonoBehaviour
         }
     }
 
-    void Update()
+    public void setPlayerMinimap(Room room)
     {
-        // 1. Si no tenemos al jugador asignado, lo buscamos automáticamente
-        if (playerTransform == null)
-        {
-            ThirdPersonController player = FindAnyObjectByType<ThirdPersonController>();
-            if (player != null)
-            {
-                playerTransform = player.transform;
-            }
-            else
-            {
-                // Si aún no ha spawneado el jugador, salimos del Update
-                return; 
-            }
-        }
+        iconObj.SetActive(true);
+        float uiX = (room.center.x - dungeonCenter.x) * uiScale;
+        float uiY = (room.center.y - dungeonCenter.y) * uiScale; 
 
-        // 2. Si el icono no se ha generado o faltan datos, salimos
-        if (playerIconInstance == null || cellSize == 0 || spacing == 0) return;
-
-        // 3. Calculamos la posición lógica
-        float gridX = playerTransform.position.x / (cellSize * spacing);
-        float gridY = playerTransform.position.z / (cellSize * spacing);
-
-        // 4. Lo convertimos a píxeles de UI
-        float uiX = (gridX - dungeonCenter.x) * uiScale;
-        float uiY = (gridY - dungeonCenter.y) * uiScale;
-
-        // 5. Aplicamos la posición y la rotación al icono generado
         playerIconInstance.anchoredPosition = new Vector2(uiX, uiY);
-        playerIconInstance.localRotation = Quaternion.Euler(0, 0, playerTransform.eulerAngles.y);
     }
 
     

@@ -2,8 +2,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.InputSystem;
-using Unity.AppUI.UI;
-using TMPro;
 public class Attacks : MonoBehaviour
 {
     [Header("Combat")]
@@ -179,33 +177,33 @@ public class Attacks : MonoBehaviour
     {
         return index switch
         {
-            0 => "Daño Ataque Básico +5",
-            1 => "Velocidad de Ataque Básico +10%",
-            2 => "Disparo Ataque Básico Extra +1",
+            0 => "Daño Ataque Básico +30",
+            1 => "Velocidad de Ataque Básico +20%",
+            2 => "Disparo Ataque Básico Extra +2",
             3 => "Perforación Ataque Básico +1",
             4 => "Activar Orbita",
-            5 => "Bola de Órbita +1",
-            6 => "Daño Órbita +3",
+            5 => "Bola de Órbita +2",
+            6 => "Daño Órbita + 10",
             7 => "Activar Rayos",
-            8 => "Daño de Rayos +10",
-            9 => "Cooldown de Rayos -15%",
+            8 => "Daño de Rayos + 20",
+            9 => "Cooldown de Rayos -20%",
             _ => "Mejora Desconocida"
         };
     }
 
     void Upgrade_BasicDamage()
     {
-        basicShotDamage += 5;
+        basicShotDamage += 30;
     }
 
     void Upgrade_BasicCooldown()
     {
-        basicShotCooldown *= 0.9f;
+        basicShotCooldown *= 0.8f;
     }
 
     void Upgrade_BasicNumber()
     {
-        basicShotNumber += 1;
+        basicShotNumber += 2;
     }
 
     void Upgrade_BasicPierce()
@@ -216,17 +214,17 @@ public class Attacks : MonoBehaviour
     void Upgrade_OrbitUnlock()
     {
         orbitBallEnabled = true;
-        orbitBallNumber = 1;
+        orbitBallNumber = 2;
     }
 
     void Upgrade_OrbitNumber()
     {
-        orbitBallNumber += 1;
+        orbitBallNumber += 2;
     }
     
     void Upgrade_OrbitDamage()
     {
-        orbitBallDamage += 3;
+        orbitBallDamage += 10;
     }
     void Upgrade_LightningEnable()
     {
@@ -235,12 +233,12 @@ public class Attacks : MonoBehaviour
 
     void Upgrade_LightningDamage()
     {
-        lightningDamage += 10;
+        lightningDamage += 20;
     }
 
     void Upgrade_LightningCooldown()
     {
-        lightningCooldown *= 0.85f;
+        lightningCooldown *= 0.80f;
     }
 #endregion
   void UpdateAutoAttackState()
@@ -338,7 +336,6 @@ public class Attacks : MonoBehaviour
     {
         if (attackPrefabs[1] == null)
         {
-            Debug.LogError("OrbitBall prefab no asignado en Attacks.cs");
             return;
         }
         
@@ -360,10 +357,6 @@ public class Attacks : MonoBehaviour
             orbitScript.orbitSpeed = orbitBallSpeed;
             orbitScript.damage = orbitBallDamage;
             orbitScript.number = orbitBallNumber;
-        }
-        else
-        {
-            Debug.LogWarning("El prefab de OrbitBall no tiene el script OrbitBall.cs");
         }
         
         orbitBalls.Add(orbitScript);
@@ -459,7 +452,6 @@ public class Attacks : MonoBehaviour
 
         foreach(Collider hit in hits)
         {
-            Debug.Log(hit.name);
             if(!hit.CompareTag("Enemy") && !hit.CompareTag("Boss"))
                 continue;
 

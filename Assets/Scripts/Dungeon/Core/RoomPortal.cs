@@ -20,7 +20,19 @@ public class RoomPortal : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // Asegúrate de que tu prefab del jugador tenga la etiqueta (Tag) "Player"
-        if (other.CompareTag("Player") && (test == null || test.enableTeleport))
+        if (!other.CompareTag("Player"))
+        {
+            return;
+        }
+
+        // Si el jugador está en una sala de tipo Wave y aún no la ha limpiado, no permitir teletransportarse.
+        Room currentRoom = GameManager.instance?.GetCurrentRoom();
+        if (currentRoom != null && currentRoom.type == roomTypes.Wave && !currentRoom.cleared)
+        {
+            return;
+        }
+
+        if (test == null || test.enableTeleport)
         {
             TeleportPlayer(other.gameObject);
         }
@@ -44,28 +56,16 @@ public class RoomPortal : MonoBehaviour
         {
             // Marcamos como visitada y actualizamos la UI
             uiMinimap.RevealRoom(destinationRoom);
+            uiMinimap.setPlayerMinimap(destinationRoom);
         }
 
         if (destinationRoom != null && test != null)
         {
             test.HandlePlayerTeleported(player.transform, destinationRoom);
-        }
-
-        if (test != null)
-        {
-            test.SetTeleportCooldown(true);
-            StartCoroutine(ReenableTeleportAfterDelay());
+            
         }
         cam.Teleport(destinationPosition);
     }
 
-    private IEnumerator ReenableTeleportAfterDelay()
-    {
-        yield return new WaitForSeconds(teleportCooldown);
 
-        if (test != null)
-        {
-            test.SetTeleportCooldown(false);
-        }
-    }
 }

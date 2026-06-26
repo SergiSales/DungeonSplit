@@ -4,7 +4,7 @@ using UnityEngine;
 public class EXPOrb : MonoBehaviour
 {
     [Header("Magnet Settings")]
-    public float detectionRange = 6f;       // Rango en el que la bola detecta al jugador
+    public float detectionRange = 4f;       // Rango en el que la bola detecta al jugador
     public float baseSpeed = 2f;            // Velocidad inicial de movimiento
     public float acceleration = 8f;         // Qué tan rápido acelera mientras vuela hacia ti
 
@@ -30,6 +30,7 @@ public class EXPOrb : MonoBehaviour
 
     void Update()
     {
+        if (!GameManager.instance.IsPlaying()) return;
         if (playerTransform == null) return;
 
         // 1. Calcular la distancia matemática entre la bola y el jugador
@@ -56,13 +57,25 @@ public class EXPOrb : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter(Collider other){
-        
-        if (other.CompareTag("player"))
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
         {
-            PlayerStats p = playerTransform.gameObject.GetComponent<PlayerStats>();
-            p.addExp();
+            PlayerStats p = playerTransform?.gameObject.GetComponent<PlayerStats>();
+            if (p != null)
+            {
+                p.addExp();
+            }
             Destroy(gameObject);
         }
+    }
+
+    public void ForceAttractToPlayer(Transform player)
+    {
+        if (player == null) return;
+
+        playerTransform = player;
+        isBeingAttracted = true;
+        currentSpeed = baseSpeed;
     }
 }

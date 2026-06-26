@@ -5,14 +5,16 @@ public class Skeleton : EnemyBase
     private const float EngageStrafeFactor = 0.35f;
     private const float PressureFactor = 0.25f;
     private const float MinDistanceToPlayer = 0.001f;
-    private const float xpDropChance = 0.2f;
+    private const float xpDropChance = 0.25f;
+
+    public Transform xpParent = null;
 
     private void Start()
     {
         alive = true;
         maxHealth = 100;
         currentHealth = maxHealth;
-        damage = 15;
+        damage = 10;
         moveSpeed = 5f;
         rotationSpeed = 10f;
         ranged = false;
@@ -45,6 +47,7 @@ public class Skeleton : EnemyBase
     public override void TakeDamage(int amount)
     {
         if (dead) return;
+        StartCoroutine(DamageFlash());
 
         currentHealth -= amount;
         if (currentHealth <= 0)
@@ -57,10 +60,9 @@ public class Skeleton : EnemyBase
     public override void Die()
     {
         dead = true;
-        if(Random.Range(0.0f, 1.0f) <= 0.2f) DropExp();
+        if(Random.Range(0.0f, 1.0f) <= xpDropChance) DropExp();
         
         Destroy(gameObject, 0.2f);
-        UnityEngine.Debug.Log("Skeleton died.");
     }
 
 
@@ -109,10 +111,23 @@ public class Skeleton : EnemyBase
 
     void DropExp()
     {
-        if (expDropPrefab != null)
+        if (expDropPrefab == null) return;
+
+        if (xpParent == null)
         {
-            Instantiate(expDropPrefab, transform.position, Quaternion.identity);
+            GameObject found = GameObject.Find("xpParent");
+
+            if (found != null)
+            {
+                xpParent = found.transform;
+            }
+            else
+            {
+                xpParent = new GameObject("xpParent").transform;
+            }
         }
+
+        Instantiate(expDropPrefab, transform.position, Quaternion.identity, xpParent);
     }
 
 
