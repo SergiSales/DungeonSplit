@@ -5,7 +5,7 @@ public class Skeleton : EnemyBase
     private const float EngageStrafeFactor = 0.35f;
     private const float PressureFactor = 0.25f;
     private const float MinDistanceToPlayer = 0.001f;
-    private const float xpDropChance = 0.25f;
+    private const float xpDropChance = 0.40f;
 
     public Transform xpParent = null;
 

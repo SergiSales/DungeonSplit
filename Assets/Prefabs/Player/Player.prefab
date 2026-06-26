@@ -175,7 +175,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   maxHealth: 100
   currentHealth: 0
-  expDrop: 50
+  expDrop: 100
   healthSlider: {fileID: 0}
   xpSlider: {fileID: 0}
   r: {fileID: 2856768469068471940}
